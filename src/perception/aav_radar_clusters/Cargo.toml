@@ -1,0 +1,11 @@
+[workspace]
+resolver = "2"
+# radar-clustering: DBSCAN, the boxes and the cloud's bytes. Needs no ROS:
+#   `cargo test -p radar-clustering`.
+# clusters-node: the ROS node (rclrs). colcon builds it through CMakeLists.txt.
+members = ["crates/radar-clustering", "crates/clusters-node"]
+
+[workspace.package]
+version = "0.1.0"
+edition = "2021"
+publish = false

@@ -1,0 +1,19 @@
+[package]
+name = "clusters-node"
+description = "radar_clusters: the radar's points grouped into objects, as ROS 2 topics"
+version.workspace = true
+edition.workspace = true
+publish.workspace = true
+
+[[bin]]
+name = "radar_clusters"
+path = "src/main.rs"
+
+[dependencies]
+anyhow = "1"
+# SIGINT, plus SIGTERM and SIGHUP: rclrs 0.8 has no signal handling of its own yet.
+ctrlc = { version = "3", features = ["termination"] }
+rclrs = "0.8"
+# The message types: compiled from the Rust code that ships with Jazzy (AMENT_PREFIX_PATH).
+ros-env = "0.3"
+radar-clustering = { path = "../radar-clustering" }
