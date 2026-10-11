@@ -12,7 +12,7 @@
                    in the lane at x = 15-16 m (models/obstacle)
 
   The road and its lines are pictures only (no collision): the car drives on the ground.
-  test_road_world.py checks that the numbers match bench.yaml. Pairs with the empty map.
+  test/test_worlds.py checks that the numbers match bench.yaml. Pairs with the empty map.
 
   The Sensors system renders the car's camera and radar stand-in (ogre2). It's the only
   world that has it: the empty and test_lot worlds run headless anywhere, without a GPU.

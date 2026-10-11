@@ -3,8 +3,10 @@
 # it is. ros_gz 1.0.24; format and type pairs checked in ros_gz_bridge/README.md and
 # bridge_config.cpp. Gazebo topics: aav_description/urdf/aav.sensors.gazebo.xacro.
 #
-# The car's names, types, frames and QoS, as the real devices publish them
-# (docs/interfaces.yaml): the frames come from each sensor's gz_frame_id.
+# The camera keeps the car's names, types, frames and QoS, as the real one publishes them
+# (docs/interfaces.yaml): the frames come from each sensor's gz_frame_id. The radar
+# stand-in goes through gazebo_adapter first, which keeps only the rays that hit
+# something, with the TI driver's fields (aav_gazebo/radar.py).
 
 # The front camera. Reliable, as the camera's subscribers ask (big messages).
 - ros_topic_name: /camera/image_raw
@@ -19,8 +21,9 @@
   gz_type_name: gz.msgs.CameraInfo
   direction: GZ_TO_ROS
 
-# The radar stand-in's points. Best effort, as the TI driver publishes them.
-- ros_topic_name: /radar/points
+# The radar stand-in's points: one per ray, inf where it hit nothing. gazebo_adapter
+# turns them into /radar/points. Best effort, as the TI driver publishes.
+- ros_topic_name: /gazebo/radar/points
   gz_topic_name: /aav/radar/points
   ros_type_name: sensor_msgs/msg/PointCloud2
   gz_type_name: gz.msgs.PointCloudPacked

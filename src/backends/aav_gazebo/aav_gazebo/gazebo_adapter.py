@@ -1,23 +1,32 @@
 """
 gazebo_adapter: Gazebo (Harmonic) as the car, behind the same topics as the real one.
 
-Subscribes  ego/actuator_cmd   ackermann_msgs/AckermannDriveStamped
-            gazebo/odom        nav_msgs/Odometry   (bridged from the Ackermann system)
-            gazebo/imu         sensor_msgs/Imu     (bridged IMU sensor)
-            gazebo/navsat      sensor_msgs/NavSatFix (bridged NavSat sensor)
-Publishes   gazebo/cmd_vel     geometry_msgs/Twist (bridged to /model/aav/cmd_vel)
-            vehicle/odom       nav_msgs/Odometry, twist only, like aav_spine
-            vehicle/status     aav_interfaces/VehicleStatus (mode COMPUTER, armed)
-            imu/data_raw       sensor_msgs/Imu, with covariances
-            gps/fix            sensor_msgs/NavSatFix, with a covariance
+Subscribes  ego/actuator_cmd     ackermann_msgs/AckermannDriveStamped
+            gazebo/odom          nav_msgs/Odometry   (bridged from the Ackermann system)
+            gazebo/imu           sensor_msgs/Imu     (bridged IMU sensor)
+            gazebo/navsat        sensor_msgs/NavSatFix (bridged NavSat sensor)
+            gazebo/radar/points  sensor_msgs/PointCloud2, best effort (bridged lidar: the
+                                 radar stand-in), only with radar:=true
+Publishes   gazebo/cmd_vel       geometry_msgs/Twist (bridged to /model/aav/cmd_vel)
+            vehicle/odom         nav_msgs/Odometry, twist only, like aav_spine
+            vehicle/status       aav_interfaces/VehicleStatus (mode COMPUTER, armed)
+            imu/data_raw         sensor_msgs/Imu, with covariances
+            gps/fix              sensor_msgs/NavSatFix, with a covariance
+            radar/points         sensor_msgs/PointCloud2, best effort, in radar_link: only
+                                 the rays that hit something, with the TI driver's fields
+                                 (radar.py), only with radar:=true
 
 So ekf_local, ekf_global, navsat_transform and imu_filter_madgwick run in simulation
-with the same configs as on the car. Gazebo's ground-truth pose is not passed on.
+with the same configs as on the car, and radar_clusters, Nav2's costmap and
+collision_monitor read the radar as they would on the car. radar is true only in a world
+that renders the radar stand-in (gazebo.launch.py). Gazebo's ground-truth pose is not
+passed on: the road world bridges it to /gazebo/truth, for checks only.
 """
 
 import math
 import signal
 
+from aav_gazebo import radar
 from aav_interfaces.msg import VehicleStatus
 from ackermann_msgs.msg import AckermannDriveStamped
 from geometry_msgs.msg import Twist
@@ -25,7 +34,13 @@ from nav_msgs.msg import Odometry
 import rclpy
 from rclpy.executors import ExternalShutdownException
 from rclpy.node import Node
-from sensor_msgs.msg import Imu, NavSatFix, NavSatStatus
+from rclpy.qos import qos_profile_sensor_data
+from sensor_msgs.msg import Imu, NavSatFix, NavSatStatus, PointCloud2, PointField
+from sensor_msgs_py import point_cloud2
+
+# The TI driver's fields: x, y, z, intensity, velocity, float32 each.
+RADAR_FIELDS = [PointField(name=n, offset=4 * i, datatype=PointField.FLOAT32, count=1)
+                for i, n in enumerate(radar.FIELDS)]
 
 
 def turn_rate(speed, steering, wheelbase):
@@ -42,7 +57,9 @@ class GazeboAdapter(Node):
         self.gyro_var = self.declare_parameter('gyro_stddev', 0.02).value ** 2
         self.accel_var = self.declare_parameter('accel_stddev', 0.2).value ** 2
         self.gps_var = self.declare_parameter('gps_stddev', 0.5).value ** 2
+        self.radar_range = self.declare_parameter('radar_range', 8.4).value   # m
         self.steering = 0.0
+        self.speed = 0.0
 
         self.cmd_pub = self.create_publisher(Twist, 'gazebo/cmd_vel', 10)
         self.odom_pub = self.create_publisher(Odometry, 'vehicle/odom', 10)
@@ -53,6 +70,12 @@ class GazeboAdapter(Node):
         self.create_subscription(Odometry, 'gazebo/odom', self.on_odom, 10)
         self.create_subscription(Imu, 'gazebo/imu', self.on_imu, 10)
         self.create_subscription(NavSatFix, 'gazebo/navsat', self.on_navsat, 10)
+        if self.declare_parameter('radar', False).value:
+            # Best effort both ways, as the TI driver publishes: its subscribers ask for it.
+            self.radar_pub = self.create_publisher(PointCloud2, 'radar/points',
+                                                   qos_profile_sensor_data)
+            self.create_subscription(PointCloud2, 'gazebo/radar/points', self.on_radar,
+                                     qos_profile_sensor_data)
 
     def on_cmd(self, msg):
         d = msg.drive
@@ -68,6 +91,7 @@ class GazeboAdapter(Node):
         odom.header.frame_id = 'odom'
         odom.child_frame_id = 'base_link'
         speed = msg.twist.twist.linear.x
+        self.speed = speed
         odom.twist.twist.linear.x = speed
         odom.twist.twist.angular.z = msg.twist.twist.angular.z
         cov = [0.0] * 36
@@ -104,6 +128,12 @@ class GazeboAdapter(Node):
                                    0.0, 0.0, 4 * self.gps_var]
         msg.position_covariance_type = NavSatFix.COVARIANCE_TYPE_DIAGONAL_KNOWN
         self.fix_pub.publish(msg)
+
+    def on_radar(self, msg):
+        xyz = point_cloud2.read_points_numpy(msg, field_names=('x', 'y', 'z'))
+        points = radar.ti_points(radar.returns(xyz, self.radar_range), self.speed)
+        msg.header.frame_id = 'radar_link'
+        self.radar_pub.publish(point_cloud2.create_cloud(msg.header, RADAR_FIELDS, points))
 
 
 def main(args=None):

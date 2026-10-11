@@ -1,0 +1,173 @@
+Panels:
+  - Class: rviz_common/Displays
+    Name: Displays
+  - Class: rviz_common/Views
+    Name: Views
+  - Class: rviz_common/Tool Properties
+    Name: Tool Properties
+Visualization Manager:
+  Class: ""
+  Displays:
+    - Class: rviz_default_plugins/Grid
+      Name: Grid (5 m)
+      Enabled: true
+      Cell Size: 5
+      Plane Cell Count: 40
+      Reference Frame: <Fixed Frame>
+    - Class: rviz_default_plugins/Map
+      Name: Map
+      Enabled: true
+      Color Scheme: map
+      Draw Behind: true
+      Topic:
+        Value: /map
+        Depth: 1
+        Durability Policy: Transient Local
+        History Policy: Keep Last
+        Reliability Policy: Reliable
+    - Class: rviz_default_plugins/Map
+      Name: Global costmap
+      Enabled: true
+      Color Scheme: costmap
+      Alpha: 0.4
+      Topic:
+        Value: /global_costmap/costmap
+        Depth: 1
+        Durability Policy: Transient Local
+        History Policy: Keep Last
+        Reliability Policy: Reliable
+    - Class: rviz_default_plugins/Map
+      Name: Local costmap
+      Enabled: true
+      Color Scheme: costmap
+      Alpha: 0.6
+      Topic:
+        Value: /local_costmap/costmap
+        Depth: 1
+        Durability Policy: Volatile
+        History Policy: Keep Last
+        Reliability Policy: Reliable
+    - Class: rviz_default_plugins/Path
+      Name: Planned path
+      Enabled: true
+      Color: 0; 120; 255
+      Line Style: Lines
+      Topic:
+        Value: /plan
+    - Class: rviz_default_plugins/Polygon
+      Name: Footprint
+      Enabled: true
+      Color: 255; 200; 0
+      Topic:
+        Value: /local_costmap/published_footprint
+    - Class: rviz_default_plugins/Odometry
+      Name: Global EKF
+      Enabled: true
+      Keep: 50
+      Shape:
+        Value: Arrow
+        Color: 255; 25; 0
+      Covariance:
+        Value: false
+      Topic:
+        Value: /odometry/global
+    - Class: rviz_default_plugins/Odometry
+      Name: GPS (in map frame)
+      Enabled: true
+      Keep: 50
+      Shape:
+        Value: Axes
+      Covariance:
+        Value: false
+      Topic:
+        Value: /odometry/gps
+    - Class: rviz_default_plugins/RobotModel
+      Name: Car
+      Enabled: true
+      Description Source: Topic
+      Description Topic:
+        Value: /robot_description
+      Alpha: 0.8
+    - Class: rviz_default_plugins/TF
+      Name: Frames
+      Enabled: true
+      Show Names: false
+      Show Axes: true
+      Marker Scale: 1
+    - Class: rviz_default_plugins/Odometry
+      Name: Truth (Gazebo)
+      Enabled: true
+      Keep: 50
+      Shape:
+        Value: Arrow
+        Color: 120; 120; 120
+      Covariance:
+        Value: false
+      Topic:
+        Value: /gazebo/truth
+    - Class: rviz_default_plugins/PointCloud2
+      Name: Radar points
+      Enabled: true
+      Size (m): 0.06
+      Style: Flat Squares
+      Color Transformer: FlatColor
+      Color: 255; 0; 255
+      Topic:
+        Value: /radar/points
+        Reliability Policy: Best Effort
+    - Class: rviz_default_plugins/Polygon
+      Name: Stop zone
+      Enabled: true
+      Color: 255; 0; 0
+      Topic:
+        Value: /collision_monitor/stop_zone
+    - Class: rviz_default_plugins/PointCloud2
+      Name: Radar clusters
+      Enabled: true
+      Size (m): 0.08
+      Style: Flat Squares
+      Color Transformer: RGB8
+      Topic:
+        Value: /radar/clusters
+        Reliability Policy: Best Effort
+    - Class: rviz_default_plugins/MarkerArray
+      Name: Radar boxes
+      Enabled: true
+      Topic:
+        Value: /radar/cluster_boxes
+    - Class: rviz_default_plugins/Image
+      Name: Camera
+      Enabled: true
+      Normalize Range: true
+      Topic:
+        Value: /camera/image_raw
+        Reliability Policy: Reliable
+    - Class: rviz_default_plugins/Image
+      Name: Camera, with YOLO's boxes (perception:=true)
+      Enabled: true
+      Normalize Range: true
+      Topic:
+        Value: /perception/detections/image
+        Reliability Policy: Reliable
+  Global Options:
+    Fixed Frame: map
+    Frame Rate: 30
+  Tools:
+    - Class: rviz_default_plugins/MoveCamera
+    - Class: rviz_default_plugins/Measure
+      Line color: 128; 128; 0
+    - Class: rviz_default_plugins/PublishPoint
+      Single click: true
+      Topic:
+        Value: /clicked_point
+    - Class: rviz_default_plugins/SetGoal
+      Topic:
+        Value: /goal_pose
+  Views:
+    Current:
+      Class: rviz_default_plugins/TopDownOrtho
+      Name: Current View
+      Scale: 10
+      Target Frame: base_link
+      X: 0
+      Y: 0
