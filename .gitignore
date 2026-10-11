@@ -27,6 +27,8 @@ cmake-build-*/
 compile_commands.json
 *.o
 *.obj
+# ...but Gazebo's meshes are Wavefront OBJ files: text, made by tools/make_stop_sign.py
+!src/backends/aav_gazebo/models/**/*.obj
 
 # Firmware: PlatformIO, Arduino and Pico SDK build folders, and what they make
 .pio/
