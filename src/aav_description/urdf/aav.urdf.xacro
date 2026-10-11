@@ -197,6 +197,7 @@
 
   <xacro:if value="$(arg sim)">
     <xacro:include filename="$(find aav_description)/urdf/aav.gazebo.xacro"/>
+    <xacro:include filename="$(find aav_description)/urdf/aav.sensors.gazebo.xacro"/>
   </xacro:if>
 
 </robot>

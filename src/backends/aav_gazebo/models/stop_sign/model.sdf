@@ -1,0 +1,44 @@
+<?xml version="1.0"?>
+<!--
+  A stop sign: the bench road's (aav_bench/config/bench.yaml: sign_height 2.0 m, the
+  plate's centre; sign_size 0.75 m). The model's origin is the foot of the post, on the
+  ground; the sign's face looks along the model's +x, so turn it to face the traffic.
+  The plate and its picture: tools/make_stop_sign.py.
+-->
+<sdf version="1.9">
+  <model name="stop_sign">
+    <static>true</static>
+    <link name="link">
+      <visual name="plate">
+        <pose>0 0 2.0 0 0 0</pose>
+        <geometry>
+          <mesh><uri>model://stop_sign/meshes/stop_sign.obj</uri></mesh>
+        </geometry>
+        <material>
+          <diffuse>1 1 1 1</diffuse>
+          <ambient>1 1 1 1</ambient>
+          <specular>0.1 0.1 0.1 1</specular>
+          <pbr>
+            <metal>
+              <albedo_map>model://stop_sign/materials/textures/stop_sign.png</albedo_map>
+              <metalness>0.0</metalness>
+              <roughness>0.6</roughness>
+            </metal>
+          </pbr>
+        </material>
+      </visual>
+      <visual name="post">
+        <pose>-0.03 0 1.0 0 0 0</pose>
+        <geometry><cylinder><radius>0.03</radius><length>2.0</length></cylinder></geometry>
+        <material>
+          <diffuse>0.55 0.55 0.55 1</diffuse>
+          <ambient>0.55 0.55 0.55 1</ambient>
+        </material>
+      </visual>
+      <collision name="post">
+        <pose>-0.03 0 1.0 0 0 0</pose>
+        <geometry><cylinder><radius>0.03</radius><length>2.0</length></cylinder></geometry>
+      </collision>
+    </link>
+  </model>
+</sdf>

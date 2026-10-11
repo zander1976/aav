@@ -1,0 +1,101 @@
+<?xml version="1.0"?>
+<!--
+  The Gazebo car's camera and radar stand-in, and Gazebo's truth: included when sim:=true.
+  Each sensor sits at the URDF's own frame (vehicle.yaml), and its messages carry that
+  frame, as the real devices' do. Only a world with the Sensors system renders them (the
+  road world); elsewhere they cost nothing. Element names checked against gz-sim 8 and
+  gz-sensors 8 (Harmonic). Bridged to ROS by aav_gazebo/config/bridge_road.yaml:
+
+    /aav/camera/image         gz.msgs.Image          -> /camera/image_raw
+    /aav/camera/camera_info   gz.msgs.CameraInfo     -> /camera/camera_info
+    /aav/radar/points         gz.msgs.PointCloudPacked -> /radar/points (best effort)
+    /model/aav/truth          gz.msgs.Odometry       -> /gazebo/truth
+-->
+<robot xmlns:xacro="http://www.ros.org/wiki/xacro">
+
+  <!-- The front camera: the 2024-25 calibration (aav_sensors/config/cameras/left.ini,
+       1920 x 1080, fx 1030 px, so 86 degrees across) at a third of its size, as the
+       bench camera has it (aav_bench/config/bench.yaml: 640 x 360, focal 343 px). The
+       same picture and lens on the bench and here, so stop_sign_watcher's 72 px and
+       lane_finder suit both. No lens distortion: the finder ignores it too. -->
+  <xacro:property name="camera_width" value="640"/>
+  <xacro:property name="camera_height" value="360"/>
+  <xacro:property name="camera_focal" value="343.0"/>
+  <gazebo reference="camera_left_link">
+    <sensor name="camera_left" type="camera">
+      <always_on>1</always_on>
+      <update_rate>10</update_rate>
+      <topic>/aav/camera/image</topic>
+      <gz_frame_id>camera_left_link</gz_frame_id>
+      <camera>
+        <camera_info_topic>/aav/camera/camera_info</camera_info_topic>
+        <horizontal_fov>${2 * atan(camera_width / 2.0 / camera_focal)}</horizontal_fov>
+        <image>
+          <width>${camera_width}</width>
+          <height>${camera_height}</height>
+          <format>R8G8B8</format>
+        </image>
+        <clip><near>0.1</near><far>150</far></clip>
+      </camera>
+    </sensor>
+  </gazebo>
+
+  <!-- A radar stand-in: a lidar shaped like the TI IWR6843AOP with ti_ros2_driver's
+       cfg/base.cfg, as the bench's mock_radar is: 8.4 m, 120 degrees wide, a ray every
+       2 degrees, 10 Hz, 5 cm of range noise. Three rays up and down, from 1 degree down to
+       7 up: the lowest meets the ground 23 m away, well past 8.4 m, so like a radar it sees
+       no ground, even as the car pitches. Rays that hit nothing come back as inf, which
+       Nav2's costmap and collision_monitor drop. Unlike a radar, it sees every surface,
+       and no speeds. -->
+  <gazebo reference="radar_link">
+    <sensor name="radar" type="gpu_lidar">
+      <always_on>1</always_on>
+      <update_rate>10</update_rate>
+      <topic>/aav/radar</topic>
+      <gz_frame_id>radar_link</gz_frame_id>
+      <lidar>
+        <scan>
+          <horizontal>
+            <samples>61</samples>
+            <resolution>1</resolution>
+            <min_angle>${radians(-60)}</min_angle>
+            <max_angle>${radians(60)}</max_angle>
+          </horizontal>
+          <vertical>
+            <samples>3</samples>
+            <resolution>1</resolution>
+            <min_angle>${radians(-1)}</min_angle>
+            <max_angle>${radians(7)}</max_angle>
+          </vertical>
+        </scan>
+        <range>
+          <min>0.3</min>
+          <max>8.4</max>
+          <resolution>0.01</resolution>
+        </range>
+        <noise>
+          <type>gaussian</type>
+          <mean>0.0</mean>
+          <stddev>0.05</stddev>
+        </noise>
+      </lidar>
+    </sensor>
+  </gazebo>
+
+  <!-- Where the car really is, for checks: its pose in the world, which is the map
+       (the datum is the world's origin), as the bench's /bench/truth. Nothing on the
+       car's side reads it. -->
+  <gazebo>
+    <plugin filename="gz-sim-odometry-publisher-system"
+            name="gz::sim::systems::OdometryPublisher">
+      <odom_frame>map</odom_frame>
+      <robot_base_frame>base_link</robot_base_frame>
+      <odom_topic>/model/aav/truth</odom_topic>
+      <odom_covariance_topic>/model/aav/truth_with_covariance</odom_covariance_topic>
+      <tf_topic>/model/aav/truth/tf</tf_topic>
+      <dimensions>3</dimensions>
+      <odom_publish_frequency>50</odom_publish_frequency>
+    </plugin>
+  </gazebo>
+
+</robot>

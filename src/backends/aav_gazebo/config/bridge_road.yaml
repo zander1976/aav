@@ -1,0 +1,35 @@
+# The road world's sensors, and Gazebo's truth: a second bridge (gz_road_bridge), started
+# only where the world renders them (world:=road), so the other worlds' graph stays as
+# it is. ros_gz 1.0.24; format and type pairs checked in ros_gz_bridge/README.md and
+# bridge_config.cpp. Gazebo topics: aav_description/urdf/aav.sensors.gazebo.xacro.
+#
+# The car's names, types, frames and QoS, as the real devices publish them
+# (docs/interfaces.yaml): the frames come from each sensor's gz_frame_id.
+
+# The front camera. Reliable, as the camera's subscribers ask (big messages).
+- ros_topic_name: /camera/image_raw
+  gz_topic_name: /aav/camera/image
+  ros_type_name: sensor_msgs/msg/Image
+  gz_type_name: gz.msgs.Image
+  direction: GZ_TO_ROS
+
+- ros_topic_name: /camera/camera_info
+  gz_topic_name: /aav/camera/camera_info
+  ros_type_name: sensor_msgs/msg/CameraInfo
+  gz_type_name: gz.msgs.CameraInfo
+  direction: GZ_TO_ROS
+
+# The radar stand-in's points. Best effort, as the TI driver publishes them.
+- ros_topic_name: /radar/points
+  gz_topic_name: /aav/radar/points
+  ros_type_name: sensor_msgs/msg/PointCloud2
+  gz_type_name: gz.msgs.PointCloudPacked
+  direction: GZ_TO_ROS
+  qos_profile: SENSOR_DATA
+
+# Where the car really is, in the map frame: for checks, like the bench's /bench/truth.
+- ros_topic_name: /gazebo/truth
+  gz_topic_name: /model/aav/truth
+  ros_type_name: nav_msgs/msg/Odometry
+  gz_type_name: gz.msgs.Odometry
+  direction: GZ_TO_ROS

@@ -1,0 +1,107 @@
+<?xml version="1.0"?>
+<!--
+  The bench's road, in Gazebo: what the bench's pretend camera draws
+  (aav_bench/config/bench.yaml), for the car's own camera and radar to see.
+
+    the road       one lane 3.5 m wide between the lines' centres, running east along
+                   y = 0 from x = -20 to 100 m: 0.15 m white lines, 0.5 m of tarmac
+                   outside them, grass beyond
+    a stop sign    25 m east, 2 m right of the centre line, facing the traffic: its plate's
+                   centre 2 m up (models/stop_sign)
+    an obstacle    off by default: gazebo.launch.py obstacle:=true puts the bench's 1 m box
+                   in the lane at x = 15-16 m (models/obstacle)
+
+  The road and its lines are pictures only (no collision): the car drives on the ground.
+  test_road_world.py checks that the numbers match bench.yaml. Pairs with the empty map.
+
+  The Sensors system renders the car's camera and radar stand-in (ogre2). It's the only
+  world that has it: the empty and test_lot worlds run headless anywhere, without a GPU.
+  Gazebo Harmonic (gz-sim 8). The world is named "aav" in every file, so the bridge
+  topics (aav_gazebo/config/*.yaml) don't change with the world.
+
+  spherical_coordinates puts the world origin on the Earth: it MUST match the datum in
+  aav_localization/config/navsat.yaml, so world (x, y) = map (x, y), x east, y north.
+-->
+<sdf version="1.9">
+  <world name="aav">
+    <physics name="1ms" type="ignored">
+      <max_step_size>0.001</max_step_size>
+      <real_time_factor>1.0</real_time_factor>
+    </physics>
+    <plugin filename="gz-sim-physics-system" name="gz::sim::systems::Physics"/>
+    <plugin filename="gz-sim-user-commands-system" name="gz::sim::systems::UserCommands"/>
+    <plugin filename="gz-sim-scene-broadcaster-system" name="gz::sim::systems::SceneBroadcaster"/>
+    <plugin filename="gz-sim-imu-system" name="gz::sim::systems::Imu"/>
+    <plugin filename="gz-sim-navsat-system" name="gz::sim::systems::NavSat"/>
+    <plugin filename="gz-sim-sensors-system" name="gz::sim::systems::Sensors">
+      <render_engine>ogre2</render_engine>
+    </plugin>
+
+    <spherical_coordinates>
+      <surface_model>EARTH_WGS84</surface_model>
+      <world_frame_orientation>ENU</world_frame_orientation>
+      <latitude_deg>45.3860</latitude_deg>
+      <longitude_deg>-75.6960</longitude_deg>
+      <elevation>70.0</elevation>
+      <heading_deg>0</heading_deg>
+    </spherical_coordinates>
+
+    <!-- The bench camera's sky (aav_bench pictures.py SKY). -->
+    <scene>
+      <ambient>0.5 0.5 0.5 1</ambient>
+      <background>0.49 0.69 0.80 1</background>
+      <shadows>true</shadows>
+    </scene>
+
+    <light type="directional" name="sun">
+      <cast_shadows>true</cast_shadows>
+      <pose>0 0 10 0 0 0</pose>
+      <diffuse>0.9 0.9 0.9 1</diffuse>
+      <specular>0.2 0.2 0.2 1</specular>
+      <direction>-0.5 0.1 -0.9</direction>
+    </light>
+
+    <model name="ground_plane">
+      <static>true</static>
+      <link name="link">
+        <collision name="collision">
+          <geometry><plane><normal>0 0 1</normal><size>400 400</size></plane></geometry>
+        </collision>
+        <visual name="grass">
+          <geometry><plane><normal>0 0 1</normal><size>400 400</size></plane></geometry>
+          <material><ambient>0.31 0.51 0.27 1</ambient><diffuse>0.31 0.51 0.27 1</diffuse></material>
+        </visual>
+      </link>
+    </model>
+
+    <!-- The road: 4.5 m of tarmac (the lane, 3.5 m, and 0.5 m outside each line), then
+         the lines on it. Pictures only, a few millimetres thick, each above the last. -->
+    <model name="road">
+      <static>true</static>
+      <link name="link">
+        <visual name="tarmac">
+          <pose>40 0 0.002 0 0 0</pose>
+          <geometry><box><size>120 4.5 0.004</size></box></geometry>
+          <material><ambient>0.37 0.37 0.37 1</ambient><diffuse>0.37 0.37 0.37 1</diffuse></material>
+        </visual>
+        <visual name="left_line">
+          <pose>40 1.75 0.006 0 0 0</pose>
+          <geometry><box><size>120 0.15 0.004</size></box></geometry>
+          <material><ambient>0.92 0.92 0.92 1</ambient><diffuse>0.92 0.92 0.92 1</diffuse></material>
+        </visual>
+        <visual name="right_line">
+          <pose>40 -1.75 0.006 0 0 0</pose>
+          <geometry><box><size>120 0.15 0.004</size></box></geometry>
+          <material><ambient>0.92 0.92 0.92 1</ambient><diffuse>0.92 0.92 0.92 1</diffuse></material>
+        </visual>
+      </link>
+    </model>
+
+    <!-- Facing west, at the traffic, which drives east. -->
+    <include>
+      <uri>model://stop_sign</uri>
+      <name>stop_sign</name>
+      <pose>25 -2 0 0 0 3.14159265</pose>
+    </include>
+  </world>
+</sdf>
