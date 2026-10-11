@@ -12,8 +12,9 @@ cd "$(dirname "$0")/.."
 export PYTHONDONTWRITEBYTECODE=1
 
 # Each package's tests import the package, so pytest runs from inside it.
-# (aav_gazebo's test imports ROS messages, so only `colcon test` runs it.)
+# (aav_gazebo's adapter test imports ROS messages, so only `colcon test` runs that one.)
 for pkg in src/ego/aav_ego src/backends/aav_spine src/backends/aav_legacy \
+           src/backends/aav_gazebo \
            src/drivers/aav_scripted src/aav_description src/perception/aav_yolo \
            src/perception/aav_lane_finder \
            src/bench/aav_bench src/hud/aav_hud; do

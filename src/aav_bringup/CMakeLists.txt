@@ -11,6 +11,8 @@ if(BUILD_TESTING)
   # car.launch.py finds its machine files in this package's own install folder.
   ament_add_pytest_test(test_car_launch test/test_car_launch.py
     APPEND_ENV AMENT_PREFIX_PATH=${CMAKE_INSTALL_PREFIX})
+  ament_add_pytest_test(test_sim_launch test/test_sim_launch.py
+    APPEND_ENV AMENT_PREFIX_PATH=${CMAKE_INSTALL_PREFIX})
 endif()
 
 ament_package()

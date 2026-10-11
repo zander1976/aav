@@ -1,8 +1,16 @@
 from glob import glob
+import os
 
 from setuptools import find_packages, setup
 
 package_name = 'aav_gazebo'
+
+
+def tree(folder):
+    """Install every file under folder, keeping its layout (the models' meshes, pictures)."""
+    return [(os.path.join('share', package_name, root), [os.path.join(root, f) for f in files])
+            for root, _, files in os.walk(folder) if files]
+
 
 setup(
     name=package_name,
@@ -14,6 +22,7 @@ setup(
         ('share/' + package_name + '/launch', glob('launch/*.launch.py')),
         ('share/' + package_name + '/config', glob('config/*.yaml')),
         ('share/' + package_name + '/worlds', glob('worlds/*.sdf')),
+        *tree('models'),
     ],
     install_requires=['setuptools'],
     zip_safe=True,

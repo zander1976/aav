@@ -40,3 +40,5 @@ Files, unchanged unless listed under Changes:
   `camera_obstacles` node (`aav_yolo/camera_obstacles.py`, `config/camera_obstacles.yaml`),
   which publishes them for Nav2's local costmap. `setup.py` installs `config/`;
   `package.xml` adds `sensor_msgs_py` and `tf2_ros_py`.
+- 2026-10-11: `launch/detector.launch.py` takes `use_sim_time` (false by default), so
+  the detector runs on Gazebo's clock in `sim.launch.py perception:=true`.
