@@ -26,7 +26,7 @@ car = { cmd = "tools/ros.sh ros2 launch aav_bringup car.launch.py machine:={{ ma
 view = { cmd = "tools/ros.sh --local ros2 launch aav_description view.launch.py", description = "The car model in RViz (this computer only)" }
 graph = { cmd = "tools/ros.sh rqt_graph", description = "Live picture of nodes and topics" }
 graph-picture = { cmd = "tools/ros.sh python3 tools/graph_picture.py", description = "Save the running graph as docs/img/graph.svg and .png (start a profile first)" }
-check = { cmd = "tools/ros.sh python3 tools/check_graph.py --profile {{ profile }}", args = [{ arg = "profile", default = "turtle" }], description = "Running graph vs the contract: pixi run check [turtle|sim|car|replay|bench]" }
+check = { cmd = "tools/ros.sh python3 tools/check_graph.py --profile {{ profile }}", args = [{ arg = "profile", default = "turtle" }], description = "Running graph vs the contract: pixi run check [turtle|sim|road|car|replay|bench]" }
 rviz = { cmd = "tools/ros.sh rviz2 -d src/aav_bringup/rviz/drive.rviz", description = "RViz with the driving layout: map, costmaps, path, car" }
 estop = { cmd = 'tools/ros.sh ros2 topic pub -t 5 -r 10 /estop std_msgs/msg/Bool "{data: true}"', description = "E-stop: block every driver (the car brakes)" }
 estop-clear = { cmd = 'tools/ros.sh ros2 topic pub -t 5 -r 10 /estop std_msgs/msg/Bool "{data: false}"', description = "Clear the e-stop" }

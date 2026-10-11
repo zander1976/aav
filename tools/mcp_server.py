@@ -261,7 +261,8 @@ def check_contract(profile: str = 'car') -> str:
     Compare the running graph with the contract, the way `pixi run check` does.
 
     It reports missing publishers, wrong types, and topics the contract doesn't list.
-    `profile` is what is meant to be running: turtle, sim, car, replay or bench.
+    `profile` is what is meant to be running: turtle, sim, road (the sim's road world), car,
+    replay or bench.
     """
     if profile not in parts.PROFILES:
         return f'profile must be one of: {", ".join(parts.PROFILES)}'

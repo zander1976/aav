@@ -22,7 +22,9 @@ def render(spec):
     out = ['# Interfaces', '',
            'Generated from `docs/interfaces.yaml` by `tools/gen_interfaces_md.py`; edit the YAML.',
            'Check a running system against it with '
-           '`pixi run check <turtle|sim|car|replay|bench>`.',
+           '`pixi run check <turtle|sim|road|car|replay|bench>`.',
+           '`road` is the sim in its road world (`world:=road`): what is live in `sim` must be '
+           'live there too.',
            '', '## Topics', '',
            '| Topic | Type | Publishers | Subscribers | Must be live in | Notes |',
            '|---|---|---|---|---|---|']

@@ -6,7 +6,9 @@
 # live: the bringup profiles where the topic must have a publisher
 #   turtle = aav_bringup turtle.launch.py, sim = sim.launch.py, car = car.launch.py,
 #   replay = replay.launch.py with a bag playing (the bag supplies the raw inputs),
-#   bench = bench.launch.py: the car's graph, with stand-ins for the hardware
+#   bench = bench.launch.py: the car's graph, with stand-ins for the hardware,
+#   road = sim.launch.py world:=road: Gazebo's road world, which adds the car's camera and
+#   radar stand-in. Whatever is live in sim must be live there too (check_graph.py)
 # All topic names are absolute. QoS is the ROS default (reliable, volatile, depth 10)
 # unless noted.
 
@@ -41,7 +43,7 @@ topics:
     type: geometry_msgs/msg/TwistStamped
     pub: [velocity_smoother, collision_monitor]
     sub: [twist_mux]
-    note: Priority 20. Nav2. From collision_monitor where the radar runs (navigation.launch.py radar:=true - the bench, the car with its radar part), else straight from velocity_smoother.
+    note: Priority 20. Nav2. From collision_monitor where the radar runs (navigation.launch.py radar:=true - the bench, the car with its radar part, Gazebo's road world), else straight from velocity_smoother.
   /cmd_vel_smoothed:
     type: geometry_msgs/msg/TwistStamped
     pub: [velocity_smoother]
@@ -164,10 +166,10 @@ topics:
     note: GPS time, from NMEA (gps_driver:=nmea).
   /radar/points:
     type: sensor_msgs/msg/PointCloud2
-    pub: [radar, mock_radar]
+    pub: [radar, mock_radar, gazebo_adapter]
     sub: [radar_clusters, local_costmap, collision_monitor]
-    live: [bench]
-    note: The TI radar's points, in radar_link, 10 Hz, an empty cloud when it sees nothing. Best effort - subscribe best effort, or nothing matches. Clustered by aav_object_detection; read by the local costmap's obstacle layer and collision_monitor where it runs (navigation.launch.py radar:=true).
+    live: [bench, road]
+    note: The TI radar's points, in radar_link, 10 Hz, an empty cloud when it sees nothing. Best effort - subscribe best effort, or nothing matches. Clustered by aav_object_detection; read by the local costmap's obstacle layer and collision_monitor where it runs (navigation.launch.py radar:=true). In Gazebo's road world, gazebo_adapter makes them from a lidar shaped like the radar - the rays that hit something, with the TI driver's fields.
   /battery_status:
     type: sensor_msgs/msg/BatteryState
     pub: [battery_state_publisher, mock_battery]
@@ -181,10 +183,10 @@ topics:
     note: battery_monitor's sign of life.
   /camera/image_raw:
     type: sensor_msgs/msg/Image
-    pub: [camera_left, mock_camera, test_camera]
+    pub: [camera_left, mock_camera, test_camera, gz_road_bridge]
     sub: [yolo_detector, yolo_detector_orin, yolo_detector_laptop, yolo_detector_all, hud_server, lane_finder, hud]
-    live: [bench]
-    note: The front camera (camera_left_link). Big messages - subscribe reliably, as best effort loses them over UDP. camera_left is usb_cam (car.launch.py's camera part, Linux only); mock_camera draws the bench world; test_camera publishes a file.
+    live: [bench, road]
+    note: The front camera (camera_left_link). Big messages - subscribe reliably, as best effort loses them over UDP. camera_left is usb_cam (car.launch.py's camera part, Linux only); mock_camera draws the bench world; test_camera publishes a file; gz_road_bridge brings Gazebo's camera, in the road world (the bench camera's picture and lens).
   /camera/image_raw/compressed:
     type: sensor_msgs/msg/CompressedImage
     pub: [camera_left, test_camera, mock_camera]
@@ -192,9 +194,9 @@ topics:
     note: The same pictures as JPEG, from image_transport's compressed plugin (usb_cam and image_publisher publish it by themselves; mock_camera only while something reads it). A detector on a laptop over WiFi reads this one (detector.launch.py compressed:=true; the laptop's machine file). On the bench, pixi run -e ml laptop-bench.
   /camera/camera_info:
     type: sensor_msgs/msg/CameraInfo
-    pub: [camera_left, mock_camera, test_camera]
+    pub: [camera_left, mock_camera, test_camera, gz_road_bridge]
     sub: [lane_finder, camera_obstacles]
-    live: [bench]
+    live: [bench, road]
     note: The lens. usb_cam reads aav_sensors/config/cameras/left.ini (the 2024-25 calibration). lane_finder takes its focal length and centre from here; camera_obstacles keeps each camera's by its frame_id.
 
   # --- perception ---
@@ -202,13 +204,13 @@ topics:
     type: sensor_msgs/msg/PointCloud2
     pub: [radar_clusters]
     sub: []
-    live: [bench]
+    live: [bench, road]
     note: The radar points DBSCAN grouped into objects, coloured by cluster.
   /radar/cluster_boxes:
     type: visualization_msgs/msg/MarkerArray
     pub: [radar_clusters]
     sub: []
-    live: [bench]
+    live: [bench, road]
     note: A box round each radar cluster, for RViz.
   /perception/detections:
     type: vision_msgs/msg/Detection2DArray
@@ -275,6 +277,14 @@ topics:
     pub: []
     sub: [spine_sim]
     note: Pretend a driver failed. Fault bits as in VehicleStatus (8 = steering, 16 = brake, 32 = throttle DAC, 64 = encoder).
+
+  # --- Gazebo's road world: the simulator's own ---
+  /gazebo/truth:
+    type: nav_msgs/msg/Odometry
+    pub: [gz_road_bridge]
+    sub: []
+    live: [road]
+    note: Where the Gazebo car really is (map frame - the world's origin is the datum - 50 Hz), like the bench's /bench/truth. Nothing on the car's side reads it; tools/sim_check.py compares it with /odometry/global. Gazebo's other topics (/gazebo/odom, imu, navsat, cmd_vel, radar/points) only link the bridges and gazebo_adapter.
 
   # --- localization ---
   /odometry/local:
