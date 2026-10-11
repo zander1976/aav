@@ -24,7 +24,10 @@ CLEAR, STOPPING, PASSING = 'clear', 'stopping', 'passing'
 class StopRule:
     """Thresholds, from the watcher's parameters."""
 
-    min_height_px: float = 72.0   # the bench camera: about 3.5 m away (aav_bench)
+    # The bench camera's, and Gazebo's (one lens): about 4.7 m away. A sign 2 m right of the
+    # lane is still in the picture then, with the car 0.7 m off its line and turned 5
+    # degrees, as Nav2 on GPS leaves it. At 72 px it had often left the picture (Gazebo).
+    min_height_px: float = 55.0
     min_score: float = 0.5
     hold_s: float = 4.0           # about 1 s to stop, then a 3 s wait
     ignore_s: float = 10.0
