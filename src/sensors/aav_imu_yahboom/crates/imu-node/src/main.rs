@@ -5,13 +5,16 @@
 //!
 //! Publishes   /imu/data_raw  sensor_msgs/Imu            gyro and accel, no orientation
 //!             /imu/mag       sensor_msgs/MagneticField  raw counts, y negated (README)
-//! Parameters  port, baud_rate, frame_id, gyro_stddev (rad/s), accel_stddev (m/s^2)
+//! Parameters  port, baud_rate (0: a pseudo-terminal), frame_id, gyro_stddev (rad/s),
+//!             accel_stddev (m/s^2)
 //!
 //! A thread reads the port and publishes; the main thread spins the node, so `ros2 param`
 //! works. Where it differs from the C++ driver, on purpose:
 //! - it exits with an error when the port goes away, instead of spinning silently, so a
 //!   launch `respawn` can bring it back;
 //! - any baud rate the port supports works (the C++ fell back to 9600 for unknown rates);
+//!   0 leaves the speed alone, for a pseudo-terminal in a test: macOS refuses to set a
+//!   speed on one, and serialport skips that call for 0;
 //! - it stops cleanly on Ctrl-C.
 
 use std::{
@@ -80,8 +83,6 @@ fn main() -> Result<()> {
     let (gyro_stddev, accel_stddev) = (params.gyro_stddev.get(), params.accel_stddev.get());
 
     let baud = u32::try_from(baud_rate)
-        .ok()
-        .filter(|&b| b > 0)
         .with_context(|| format!("baud_rate {baud_rate} is not a baud rate"))?;
     let mut serial = serialport::new(&*port, baud)
         .timeout(READ_TIMEOUT)

@@ -103,9 +103,13 @@ class Collector(Node):
         self.create_subscription(Imu, '/imu/data_raw', self.imu.append, qos)
         self.create_subscription(MagneticField, '/imu/mag', self.mag.append, qos)
 
-    def wait_for_driver(self, timeout=20.0):
+    def publishers(self):
+        return {bytes(p.endpoint_gid) for p in self.get_publishers_info_by_topic('/imu/mag')}
+
+    def wait_for_driver(self, before, timeout=20.0):
+        """Wait for a publisher not in `before`: a killed driver's lingers in the graph."""
         end = time.monotonic() + timeout
-        while self.count_publishers('/imu/mag') == 0 and time.monotonic() < end:
+        while not self.publishers() - before and time.monotonic() < end:
             time.sleep(0.1)
         time.sleep(1.5)   # the driver configures the port, and the topics connect
 
@@ -118,7 +122,11 @@ class Collector(Node):
 
 def start(package, port):
     exe = os.path.join(get_package_prefix(package), 'lib', package, 'imu_node')
-    return subprocess.Popen([exe, '--ros-args', '-p', f'port:={port}'],
+    # macOS refuses to set a speed on a pseudo-terminal, so there both drivers get 0: the
+    # Rust one then leaves the speed alone, and the C++ one falls back to 9600, which a
+    # pseudo-terminal ignores.
+    baud = ['-p', 'baud_rate:=0'] if sys.platform == 'darwin' else []
+    return subprocess.Popen([exe, '--ros-args', '-p', f'port:={port}', *baud],
                             stdout=subprocess.PIPE, stderr=subprocess.STDOUT, text=True,
                             start_new_session=True)
 
@@ -146,16 +154,24 @@ def cpu_seconds(pid):
         return seconds + 86400 * int(days or 0)
 
 
-def stop(proc, sig=signal.SIGINT, timeout=5.0):
-    """Signal the driver's process group; return its exit code, or None if it hung."""
+def signal_group(proc, sig):
+    """Signal the driver's process group, even if the driver has just exited."""
     try:
         os.killpg(proc.pid, sig)
     except ProcessLookupError:
         pass
+    except PermissionError:
+        # macOS refuses (EPERM) when the group's one process has exited but isn't reaped.
+        proc.send_signal(sig)   # it checks first, so a reaped process is left alone
+
+
+def stop(proc, sig=signal.SIGINT, timeout=5.0):
+    """Signal the driver's process group; return its exit code, or None if it hung."""
+    signal_group(proc, sig)
     try:
         return proc.wait(timeout)
     except subprocess.TimeoutExpired:
-        os.killpg(proc.pid, signal.SIGKILL)
+        signal_group(proc, signal.SIGKILL)
         proc.wait()
         return None
 
@@ -170,10 +186,11 @@ def run(package, collector, clean, with_cr):
     """Play both kinds of sets into one driver; then Ctrl-C it, and then unplug a second."""
     result = {}
     master, slave = os.openpty()   # the slave keeps a fresh terminal's settings, as ttyUSB0
+    before = collector.publishers()
     proc = start(package, os.ttyname(slave))
     collector.imu.clear()
     collector.mag.clear()
-    collector.wait_for_driver()
+    collector.wait_for_driver(before)
     exited_early(proc, package)
     for name, sets in (('clean', clean), ('cr', with_cr)):
         before = len(collector.imu)
@@ -190,8 +207,9 @@ def run(package, collector, clean, with_cr):
 
     # Unplugged: the port goes away under a running driver.
     master, slave = os.openpty()
+    before = collector.publishers()
     proc = start(package, os.ttyname(slave))
-    collector.wait_for_driver()
+    collector.wait_for_driver(before)
     exited_early(proc, package)
     os.close(slave)
     os.close(master)
@@ -222,9 +240,6 @@ def main():
         results = {lang: run(package, collector, clean, with_cr) for lang, package in DRIVERS}
     except RuntimeError as err:
         print(f'Could not compare: {err}')
-        if sys.platform == 'darwin':
-            print('On a Mac, the fake serial port rejects the Rust serial library\'s baud-rate '
-                  'call (a real USB port should accept it). Run this comparison on Linux.')
         return 1
     finally:
         executor.shutdown()
