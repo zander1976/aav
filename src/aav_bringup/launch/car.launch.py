@@ -4,7 +4,6 @@ The real car. One launch file for every machine; a machine file picks the parts.
   ros2 launch aav_bringup car.launch.py machine:=orin
       [gps:=true] [gps_driver:=ublox] [map:=<map yaml>] [start_x:=0] [start_y:=0]
       [start_yaw:=0]
-      [imu_driver:=rust]  (or cpp: yahboom_imu_cpp, the 2025-26 C++ IMU driver)
 
 machine: config/machines/<machine>.yaml lists which parts run on that computer
 (orin, motor_pi, laptop, all), and the detector's settings there. Every machine uses the
@@ -195,8 +194,7 @@ def launch_setup(context):
     if any(on(s) for s in ('imu', 'gps', 'radar', 'battery')):
         actions.append(include('aav_sensors', 'sensors.launch.py',
                                imu=on('imu'), gps=on('gps'), radar=on('radar'),
-                               battery=on('battery'), imu_driver=arg('imu_driver'),
-                               gps_driver=arg('gps_driver')))
+                               battery=on('battery'), gps_driver=arg('gps_driver')))
     if on('camera'):
         if installed('usb_cam'):
             actions.append(include('aav_sensors', 'cameras.launch.py',
@@ -256,8 +254,6 @@ def generate_launch_description():
                               description='ublox (u-blox, Pixi too), nmea (any NMEA receiver) '
                                           'or ublox_dgnss (u-blox F9P, apt only). Tentative '
                                           'until the receiver is known: Q18'),
-        DeclareLaunchArgument('imu_driver', default_value='rust',
-                              description='rust or cpp: the same IMU node, in either language'),
         DeclareLaunchArgument('map', default_value='',
                               description='Map YAML for Nav2 (default: the empty map)'),
         DeclareLaunchArgument('start_x', default_value='0.0'),

@@ -1,8 +1,9 @@
 //! The C++ driver's answers, kept after it was removed.
 //!
 //! `cpp_vectors.txt` holds a byte stream and every sample `yahboom_imu_cpp` published for
-//! it, recorded through a pseudo-terminal by `test/capture_cpp_vectors.py`. The same bytes
-//! through [`Decoder`] must give the same samples, chunk by chunk and bit for bit.
+//! it, recorded through a pseudo-terminal by `test/capture_cpp_vectors.py` (removed with the
+//! C++ driver: PROVENANCE.md says where it is). The same bytes through [`Decoder`] must
+//! give the same samples, chunk by chunk and bit for bit.
 
 use yahboom_protocol::{Decoder, Event, Sample};
 

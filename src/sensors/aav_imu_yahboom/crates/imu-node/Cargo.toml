@@ -1,6 +1,6 @@
 [package]
 name = "imu-node"
-description = "imu_node: the Yahboom IMU as ROS 2 topics, the Rust twin of yahboom_imu_cpp"
+description = "imu_node: the Yahboom IMU as ROS 2 topics, rewritten from the 2025-26 C++ driver"
 version.workspace = true
 edition.workspace = true
 publish.workspace = true

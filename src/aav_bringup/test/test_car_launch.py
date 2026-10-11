@@ -107,16 +107,10 @@ def test_ublox_gps_is_the_default():
     assert ('ublox_gps', 'ublox_gps_node') in nodes(started(SENSORS))
 
 
-def test_the_imu_driver_argument_picks_the_language():
-    sent = included(started(CAR, machine='all', imu_driver='cpp'))
-    assert sent['sensors.launch.py']['imu_driver'] == 'cpp'
-    assert ('aav_imu_yahboom', 'imu_node') in nodes(started(SENSORS, imu_driver='rust'))
-    assert ('yahboom_imu_cpp', 'imu_node') in nodes(started(SENSORS, imu_driver='cpp'))
-
-
-def test_the_rust_imu_driver_is_the_default():
-    assert included(started(CAR, machine='all'))['sensors.launch.py']['imu_driver'] == 'rust'
+def test_the_imu_driver_is_the_rust_one():
+    # The C++ driver (yahboom_imu_cpp) is gone, and with it the imu_driver argument.
     assert ('aav_imu_yahboom', 'imu_node') in nodes(started(SENSORS))
+    assert 'imu_driver' not in included(started(CAR, machine='all'))['sensors.launch.py']
 
 
 def test_the_map_and_the_start_pose_reach_their_launch_files():
@@ -137,8 +131,6 @@ def test_bad_values_stop_the_launch():
         started(CAR, machine='all', gps='maybe')
     with pytest.raises(RuntimeError, match='pick one of'):
         started(SENSORS, gps_driver='garmin')
-    with pytest.raises(RuntimeError, match='pick one of'):
-        started(SENSORS, imu_driver='python')
 
 
 def test_one_stop_sign_watcher_next_to_the_mux():

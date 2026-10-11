@@ -1,8 +1,8 @@
 //! The Yahboom 10-axis IMU's serial protocol: frames, checksums and units.
 //!
 //! Purpose: turn the IMU's byte stream into one [`Sample`] per set of readings, with the
-//! same numbers `yahboom_imu_cpp` publishes. No ROS and no I/O, so it is tested on any
-//! laptop with `cargo test`.
+//! same numbers the 2025-26 C++ driver (`yahboom_imu_cpp`) published: `tests/cpp_vectors.rs`
+//! checks them. No ROS and no I/O, so it is tested on any laptop with `cargo test`.
 //!
 //! The IMU repeats a set of 11-byte frames: acceleration (0x51), angular rate (0x52),
 //! angles (0x53) and magnetic field (0x54). A frame is the header 0x55, its type, four
@@ -26,7 +26,7 @@ pub const ANGLE: u8 = 0x53;
 /// Frame type: magnetic field.
 pub const MAG: u8 = 0x54;
 
-/// One set of readings, converted exactly as `yahboom_imu_cpp` converts them.
+/// One set of readings, converted exactly as the C++ driver converted them.
 #[derive(Clone, Copy, Debug, Default, PartialEq)]
 pub struct Sample {
     /// Linear acceleration, m/s², in the IMU's axes.

@@ -50,7 +50,7 @@ can tell the difference.
 | The spine bridge | the car's own: `spine_bridge` and its CAN frames | the same |
 | The CAN bus | the topics `/to_can_bus` and `/from_can_bus` | `ros2_socketcan` and `can0` |
 | The spine board and actuators | `spine_sim`: the firmware's own logic on a model car | the spine board, two Jrk G2s, the throttle DAC |
-| IMU | `mock_imu` | `yahboom_imu_cpp`, or its Rust twin |
+| IMU | `mock_imu` | `aav_imu_yahboom` |
 | GPS | `mock_gps` | `ublox_gps` (the default), `gps_nmea` or `ublox_dgnss`: `gps_driver:=` picks |
 | Camera | `mock_camera` | `usb_cam` |
 | Radar | `mock_radar` | `ti_ros2_driver` |

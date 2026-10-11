@@ -13,7 +13,7 @@ touching the others.
 | Sensor | Driver | Publishes |
 |---|---|---|
 | Wheel speed | today `encoder_udp` (in `aav_legacy`); later the spine | `/vehicle/odom` |
-| IMU (Yahboom, USB) | `yahboom_imu_cpp`, then the stock `imu_filter_madgwick` | `/imu/data_raw`, then `/imu/data` |
+| IMU (Yahboom, USB) | `aav_imu_yahboom` (Rust), then the stock `imu_filter_madgwick` | `/imu/data_raw`, then `/imu/data` |
 | GPS (u-blox, USB) | the stock `ublox_gps`; or `nmea_navsat_driver`, or `ublox_dgnss` on the car | `/gps/fix` |
 | The car's shape | the stock `robot_state_publisher`, from `vehicle.yaml` | `/tf_static`: where each sensor sits |
 | Lidar, cameras | next year | |

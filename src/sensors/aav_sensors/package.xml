@@ -3,13 +3,12 @@
 <package format="3">
   <name>aav_sensors</name>
   <version>0.1.0</version>
-  <description>Sensor configuration and launch: IMU (aav_imu_yahboom or yahboom_imu_cpp, + imu_filter_madgwick), GPS (ublox_gps, nmea_navsat_driver or ublox_dgnss -> /gps/fix), radar (ti_ros2_driver), battery (battery_monitor), and the cameras (usb_cam) with their calibration files.</description>
+  <description>Sensor configuration and launch: IMU (aav_imu_yahboom, + imu_filter_madgwick), GPS (ublox_gps, nmea_navsat_driver or ublox_dgnss -> /gps/fix), radar (ti_ros2_driver), battery (battery_monitor), and the cameras (usb_cam) with their calibration files.</description>
   <maintainer email="aav-team@todo.invalid">AAV 2026-27 team</maintainer>
   <license>TODO</license>
 
   <buildtool_depend>ament_cmake</buildtool_depend>
 
-  <exec_depend>yahboom_imu_cpp</exec_depend>
   <exec_depend>aav_imu_yahboom</exec_depend>
   <exec_depend>imu_filter_madgwick</exec_depend>
   <!-- The GPS: one of three drivers (sensors.launch.py gps_driver:=) -->

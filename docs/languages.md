@@ -20,7 +20,7 @@ language, because programs only meet through messages.
 | Our ROS nodes: ego, drivers, bridges, adapters | Python | Glue that runs 50 times a second or less. Quick to write and read. The same file runs on any computer, with no cross-compiling. |
 | Launch files | Python | That's how ROS 2 launch works |
 | Stock packages: Nav2, the EKFs, twist_mux | C++ | Not ours: we only configure them |
-| The IMU driver: `yahboom_imu_cpp`, and Ben's Rust twin `aav_imu_yahboom` | C++, moving to Rust | The Rust twin becomes the default; then the C++ goes |
+| The IMU driver, `aav_imu_yahboom` | Rust (`rclrs`) | Ben's rewrite of the 2025-26 C++ driver, which it replaced on 11 Oct |
 | The radar clustering, `aav_object_detection` | C++, moving to Rust | Inherited from the 2025-26 team. It becomes a Rust ROS node (`rclrs`) |
 | The spine firmware, `firmware/spine` | Rust, `no_std` | Memory-safe, and its logic is tested on a laptop |
 | Today's ESP32 and Pico firmware | C++ (Arduino) | Inherited. The spine (Rust) replaces the ESP32; the Picos get Rust twins (Embassy) |

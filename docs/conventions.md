@@ -9,7 +9,7 @@ in its `PROVENANCE.md`.
 | Thing | Pattern | Examples |
 |---|---|---|
 | Our package | `aav_<what>` | `aav_ego`, `aav_spine`, `aav_teleop` |
-| A device driver package | `aav_<kind>_<maker>`, so drivers of one kind sort together | `aav_imu_yahboom` (proposed) |
+| A device driver package | `aav_<kind>_<maker>`, so drivers of one kind sort together | `aav_imu_yahboom` |
 | Folder under `src/` | the layer of the picture | `sensors/`, `localization/`, `drivers/`, `mux/`, `ego/`, `backends/` |
 | Node and executable | what it is, in snake_case; both the same | `ego`, `spine_bridge`, `scripted_driver` |
 | Logic module | a noun, no ROS imports | `ackermann.py`, `can_codec.py`, `vehicle.py` |
@@ -31,7 +31,7 @@ changes their launch files and executables.
 |---|---|---|
 | `maincar` (the HUD's web server) | `aav_hud` | done, 10 October |
 | `lane_geometry`, `object_detection`, `yolo_ros2` | `aav_lane_geometry`, `aav_object_detection`, `aav_yolo` | done, 10 October, when perception came in |
-| `yahboom_imu_cpp` | `aav_imu_yahboom` | proposed. Ben's Rust twin already uses the name [[needs-you]] |
+| `yahboom_imu_cpp` | `aav_imu_yahboom` | done, 11 October: Ben's Rust rewrite replaced it |
 | `ti_ros2_driver` | `aav_radar_ti` | proposed [[needs-you]] |
 | `battery_monitor` | `aav_battery_victron` | proposed [[needs-you]] |
 

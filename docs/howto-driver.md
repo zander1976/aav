@@ -193,6 +193,5 @@ A sensor driver turns a device into a standard ROS message: an IMU into
 | Keep the topic names | another driver for the same kind of sensor can replace it without changing anything downstream |
 | Pins, addresses and calibration stay in the firmware | ROS never sees a pin |
 
-The IMU shows the pattern: `yahboom_imu_cpp` (C++) and its Rust twin `aav_imu_yahboom`
-(in progress) take the same config and publish the same topics, so the launch file can
-pick either one.
+The IMU shows the pattern: `aav_imu_yahboom` (Rust) replaced the 2025-26 C++ driver. It
+takes the same config and publishes the same topics, so nothing downstream changed.

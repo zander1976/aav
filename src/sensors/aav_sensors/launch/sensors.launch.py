@@ -2,11 +2,10 @@
 Sensor drivers: each publishes raw data in its own frame; nothing here fuses anything.
 
   ros2 launch aav_sensors sensors.launch.py [imu:=true] [gps:=true] [radar:=false]
-      [battery:=false] [imu_driver:=rust] [gps_driver:=ublox]
+      [battery:=false] [gps_driver:=ublox]
 
   IMU     imu_node -> /imu/data_raw -> imu_filter_madgwick -> /imu/data
-          imu_node is aav_imu_yahboom (Rust), or with imu_driver:=cpp the 2025-26
-          C++ driver yahboom_imu_cpp: the same node name, parameters and topics.
+          imu_node is aav_imu_yahboom, in Rust (it replaced the 2025-26 C++ driver).
   GPS     one of three drivers, each -> /gps/fix (NavSatFix, frame gps_link):
             ublox        ublox_gps (KumarRobotics' ublox): a u-blox on /dev/aav/gps, as
                          the receiver is already set up (config/ublox_gps.yaml). The
@@ -34,7 +33,6 @@ from launch.substitutions import LaunchConfiguration
 from launch_ros.actions import ComposableNodeContainer, Node
 from launch_ros.descriptions import ComposableNode
 
-IMU_DRIVERS = {'rust': 'aav_imu_yahboom', 'cpp': 'yahboom_imu_cpp'}
 # Each GPS driver, and the package it needs.
 GPS_DRIVERS = {'ublox': 'ublox_gps', 'nmea': 'nmea_navsat_driver',
                'ublox_dgnss': 'ublox_dgnss_node'}
@@ -126,10 +124,8 @@ def launch_setup(context):
     use_sim_time = {'use_sim_time': on('use_sim_time')}
     actions = []
     if on('imu'):
-        # Either driver takes the same config/imu.yaml.
         actions += [
-            Node(package=IMU_DRIVERS[choice('imu_driver', IMU_DRIVERS)], executable='imu_node',
-                 name='imu_node',
+            Node(package='aav_imu_yahboom', executable='imu_node', name='imu_node',
                  parameters=[os.path.join(config, 'imu.yaml'), use_sim_time]),
             Node(package='imu_filter_madgwick', executable='imu_filter_madgwick_node',
                  name='imu_filter_madgwick',
@@ -166,8 +162,6 @@ def generate_launch_description():
         DeclareLaunchArgument('radar', default_value='false'),
         DeclareLaunchArgument('battery', default_value='false'),
         DeclareLaunchArgument('use_sim_time', default_value='false'),
-        DeclareLaunchArgument('imu_driver', default_value='rust',
-                              description='rust: aav_imu_yahboom; cpp: yahboom_imu_cpp'),
         DeclareLaunchArgument('gps_driver', default_value='ublox',
                               description='ublox: ublox_gps; nmea: nmea_navsat_driver; '
                                           'ublox_dgnss: ublox_dgnss (apt only). Tentative: '

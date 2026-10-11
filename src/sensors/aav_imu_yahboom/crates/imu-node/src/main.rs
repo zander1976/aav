@@ -1,7 +1,8 @@
 //! imu_node: the Yahboom 10-axis IMU as ROS topics, in Rust.
 //!
-//! The twin of `yahboom_imu_cpp`: the same node name, parameters, topics, units and
-//! covariances, so either one runs from `aav_sensors/config/imu.yaml`.
+//! Rewritten from the 2025-26 C++ driver (`yahboom_imu_cpp`, removed: PROVENANCE.md), with
+//! its node name, parameters, topics, units and covariances: `aav_sensors/config/imu.yaml`
+//! sets them.
 //!
 //! Publishes   /imu/data_raw  sensor_msgs/Imu            gyro and accel, no orientation
 //!             /imu/mag       sensor_msgs/MagneticField  raw counts, y negated (README)

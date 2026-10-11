@@ -118,7 +118,6 @@ They win over the machine file. With Pixi, put them after `--`:
 |---|---|
 | `gps:=false` | no GPS anywhere: no driver, and localization without it |
 | `gps_driver:=ublox` | which GPS driver: `ublox` (the default, Tentative: Q18), `nmea`, or `ublox_dgnss` (apt only, the car) |
-| `imu_driver:=cpp` | which IMU driver: `cpp`, or `rust`, its Rust twin |
 | `map:=`, `start_x:=`, `start_y:=`, `start_yaw:=` | Nav2's map, and where the car starts on it |
 
 ## Try Jazzy on the car before the reflash

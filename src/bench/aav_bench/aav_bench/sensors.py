@@ -14,7 +14,7 @@ and frame, so nothing downstream changes.
                 the bench world's obstacle boxes, when obstacle is true; else empty
 
 spine_sim publishes /bench/truth: where the model car really is. The real drivers are
-yahboom_imu_cpp, ublox_gps, battery_monitor, usb_cam (aav_sensors) and ti_ros2_driver.
+aav_imu_yahboom, ublox_gps, battery_monitor, usb_cam (aav_sensors) and ti_ros2_driver.
 """
 
 import math

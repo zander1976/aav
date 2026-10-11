@@ -1,4 +1,4 @@
-# Yahboom 10-axis IMU (src/sensors/aav_imu_yahboom, or its C++ original yahboom_imu_cpp).
+# Yahboom 10-axis IMU (src/sensors/aav_imu_yahboom, in Rust).
 # Publishes /imu/data_raw (sensor_msgs/Imu: gyro + accel, no orientation) and /imu/mag
 # (raw counts, not tesla, so unused). Frame imu_link: its mount is in
 # aav_description/config/vehicle.yaml.

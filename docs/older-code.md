@@ -32,7 +32,7 @@ repo provides. Surveyed on 10 October 2026, from the 14 clones in `~/Code/aav`.
 | User-Interface | the in-car HUD: a Flutter app, a Flask ROS node, offline routing and place search | Dart/Flutter, Python ROS 2; the UI Pi | a working demo, on mock data | partly: `hud/`, `src/hud/maincar` | **its place database `ottawa.db` (51 MB)**: the ported app still needs it |
 | Wheel_Encoders | a Pico 2 that counts wheel spokes and sends them over Ethernet | Arduino C++; Pico 2, W5500 | working demo | yes: `firmware/legacy/wheel_encoder_pico2`, `aav_legacy` | its 3D-printed case files |
 | joy_teleop_ackerman | joystick to Ackermann commands, with deadman buttons | Python ROS 2 | working | no: stock teleop replaced it; its button map lives on in `aav_teleop` | no |
-| yahboom-IMU | the Yahboom IMU driver | C++ ROS 2; Pi 4 | working | yes, with fixes: `src/sensors/yahboom_imu_cpp` | no |
+| yahboom-IMU | the Yahboom IMU driver | C++ ROS 2; Pi 4 | working | yes, rewritten in Rust: `src/sensors/aav_imu_yahboom` (the C++ copy went on 11 Oct) | no |
 
 The five not cloned here:
 

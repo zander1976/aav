@@ -1,6 +1,7 @@
 # What yahboom_imu_cpp (the 2025-26 C++ IMU driver) published for this byte stream.
 # Made by test/capture_cpp_vectors.py on 2026-10-11, through a pseudo-terminal, with the
 # C++ driver as it was in aav just before it was removed. Read by cpp_vectors.rs.
+# The script went with the C++ driver: git log --oneline -- src/sensors/aav_imu_yahboom/test
 #
 # Every message also had these, from the driver's default settings:
 #   frame_id imu_link (Imu) and imu_link (MagneticField); orientation (0.0, 0.0, 0.0, 1.0);

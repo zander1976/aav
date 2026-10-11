@@ -3,7 +3,7 @@
 <package format="3">
   <name>aav_imu_yahboom</name>
   <version>0.1.0</version>
-  <description>imu_node in Rust (rclrs): the Yahboom 10-axis IMU on /imu/data_raw and /imu/mag. The twin of yahboom_imu_cpp, with the same node name, parameters, topics and units.</description>
+  <description>imu_node in Rust (rclrs): the Yahboom 10-axis IMU on /imu/data_raw and /imu/mag. Rewritten from the 2025-26 C++ driver (yahboom_imu_cpp, now removed), with its node name, parameters, topics and units.</description>
   <maintainer email="aav-team@todo.invalid">AAV 2026-27 team</maintainer>
   <license>TODO</license>
 

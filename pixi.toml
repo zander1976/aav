@@ -32,7 +32,6 @@ estop = { cmd = 'tools/ros.sh ros2 topic pub -t 5 -r 10 /estop std_msgs/msg/Bool
 estop-clear = { cmd = 'tools/ros.sh ros2 topic pub -t 5 -r 10 /estop std_msgs/msg/Bool "{data: false}"', description = "Clear the e-stop" }
 gz-window = { cmd = "tools/ros.sh gz sim -g", description = "Gazebo's window, for a simulator started with gui:=false (Macs)" }
 doctor = { cmd = "tools/ros.sh python3 tools/doctor.py", description = "Can this computer join the car's ROS network? Says what to fix" }
-imu-compare = { cmd = "tools/ros.sh --local python3 src/sensors/aav_imu_yahboom/test/compare_with_cpp.py", description = "Feed the same bytes to the C++ and Rust IMU drivers, and compare them (no IMU needed)" }
 vendor = { cmd = "python3 tools/vendor.py", description = "Download the ROS 2 and ros2-rust source into vendor/, to look things up (not ours; about 560 MB)" }
 get-models = { cmd = "tools/get_models.sh", description = "Download the stock YOLO model into models/ (for pixi run detect)" }
 get-hud-map = { cmd = "tools/get_hud_map.sh", description = "Download the HUD app's place database (51 MB, OpenStreetMap) into hud/flutter_pi/assets/databases/" }
