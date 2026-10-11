@@ -38,7 +38,7 @@ PARAMETER_SERVICES = ('/describe_parameters', '/get_parameter_types', '/get_para
                       '/list_parameters', '/set_parameters', '/set_parameters_atomically',
                       '/get_type_description')
 
-PROFILES = ('turtle', 'sim', 'car', 'replay', 'bench')
+PROFILES = ('turtle', 'sim', 'road', 'car', 'replay', 'bench')
 
 
 def readable_files(root: Path = ROOT) -> List[str]:

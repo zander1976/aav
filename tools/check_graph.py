@@ -2,7 +2,7 @@
 """
 Compare the running ROS graph with docs/interfaces.yaml. Needs a sourced Jazzy install.
 
-usage: tools/check_graph.py --profile turtle|sim|car|replay [--wait 5]
+usage: tools/check_graph.py --profile turtle|sim|road|car|replay|bench [--wait 5]
 
 Reports, for every topic in the contract:
   FAIL  a topic marked live in this profile has no publisher, or a type differs
@@ -10,6 +10,9 @@ Reports, for every topic in the contract:
   -     not running (fine if it isn't live in this profile)
 and lists topics that are running but not in the contract (a typo, or the contract
 needs an entry). Exit status 1 if anything failed: usable in a test script.
+
+road is the sim in its road world (sim.launch.py world:=road), so a topic live in sim must
+be live there too, and so must the road world's own: the camera and the radar.
 """
 
 import argparse
@@ -25,12 +28,14 @@ ROOT = Path(__file__).resolve().parents[1]
 # robot_localization (the contract lists its set_pose services instead).
 IGNORE = {'/parameter_events', '/rosout', '/diagnostics',
           '/ekf_local/set_pose', '/ekf_global/set_pose'}
+PROFILES = ('turtle', 'sim', 'road', 'car', 'replay', 'bench')
+# The profiles each one runs whole, besides its own: the road world is the sim, and more.
+INCLUDES = {'road': ('sim',)}
 
 
 def main():
     ap = argparse.ArgumentParser()
-    ap.add_argument('--profile', required=True,
-                    choices=['turtle', 'sim', 'car', 'replay', 'bench'])
+    ap.add_argument('--profile', required=True, choices=PROFILES)
     ap.add_argument('--wait', type=float, default=3.0, help='seconds to let discovery settle')
     ap.add_argument('--spec', default=str(ROOT / 'docs' / 'interfaces.yaml'))
     args = ap.parse_args()
@@ -40,9 +45,10 @@ def main():
     node = rclpy.create_node('check_graph')
     time.sleep(args.wait)
     running = dict(node.get_topic_names_and_types())
+    profiles = {args.profile, *INCLUDES.get(args.profile, ())}
     failed = 0
     for name, t in spec['topics'].items():
-        live = args.profile in t.get('live', [])
+        live = bool(profiles & set(t.get('live', [])))
         pubs = sorted({p.node_name for p in node.get_publishers_info_by_topic(name)})
         subs = sorted({s.node_name for s in node.get_subscriptions_info_by_topic(name)}
                       - {'check_graph'})
@@ -58,8 +64,9 @@ def main():
         else:
             print(f'-     {name}')
     extra = sorted(set(running) - set(spec['topics']) - IGNORE)
-    # Costmap internals, the topics ROS makes inside every action, and turtlesim's own.
-    internal = ('/local_costmap/', '/global_costmap/', '/turtle1/')
+    # Costmap internals, the topics ROS makes inside every action, turtlesim's own, and
+    # Gazebo's (between its bridges and gazebo_adapter).
+    internal = ('/local_costmap/', '/global_costmap/', '/turtle1/', '/gazebo/')
     extra = [n for n in extra if not n.startswith(internal) and '/_action/' not in n]
     if extra:
         print('\nRunning but not in docs/interfaces.yaml:')
