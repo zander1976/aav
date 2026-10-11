@@ -42,3 +42,6 @@ Files, unchanged unless listed under Changes:
   `package.xml` adds `sensor_msgs_py` and `tf2_ros_py`.
 - 2026-10-11: `launch/detector.launch.py` takes `use_sim_time` (false by default), so
   the detector runs on Gazebo's clock in `sim.launch.py perception:=true`.
+- 2026-10-11: our own `aav_yolo/stop_sign.py`: `min_height_px` 55 by default, was 72. In
+  Gazebo's road world a sign 2 m right of the lane left the picture before its box was
+  72 px tall whenever Nav2 drove the car 0.5-0.7 m left of its line, so the car drove on.

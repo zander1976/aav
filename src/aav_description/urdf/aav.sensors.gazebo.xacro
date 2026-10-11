@@ -16,7 +16,7 @@
   <!-- The front camera: the 2024-25 calibration (aav_sensors/config/cameras/left.ini,
        1920 x 1080, fx 1030 px, so 86 degrees across) at a third of its size, as the
        bench camera has it (aav_bench/config/bench.yaml: 640 x 360, focal 343 px). The
-       same picture and lens on the bench and here, so stop_sign_watcher's 72 px and
+       same picture and lens on the bench and here, so stop_sign_watcher's 55 px and
        lane_finder suit both. No lens distortion: the finder ignores it too. -->
   <xacro:property name="camera_width" value="640"/>
   <xacro:property name="camera_height" value="360"/>

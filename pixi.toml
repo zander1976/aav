@@ -22,6 +22,7 @@ keyboard = { cmd = "tools/ros.sh tools/keyboard.sh", description = "Drive from t
 sim = { cmd = "tools/ros.sh --local ros2 launch aav_bringup sim.launch.py", description = "Gazebo as the car (this computer only)" }
 bench = { cmd = "tools/ros.sh --local ros2 launch aav_bringup bench.launch.py", description = "The real car's software, with stand-ins for the hardware (bench mode, this computer only)" }
 bench-check = { cmd = "tools/ros.sh --local python3 tools/bench_check.py", description = "Start bench mode and test the whole car graph: contract, drive, e-stops (2 min)" }
+sim-check = { cmd = "tools/ros.sh --local python3 tools/sim_check.py", description = "Start Gazebo's road world headless and test the car's whole graph in it: contract, sensors, a drive (2 min); --perception (with -e ml), --obstacle, --lane add more" }
 car = { cmd = "tools/ros.sh ros2 launch aav_bringup car.launch.py machine:={{ machine }}", args = [{ arg = "machine", default = "all" }], description = "The real car: pixi run car orin (or motor_pi, laptop, all)" }
 view = { cmd = "tools/ros.sh --local ros2 launch aav_description view.launch.py", description = "The car model in RViz (this computer only)" }
 graph = { cmd = "tools/ros.sh rqt_graph", description = "Live picture of nodes and topics" }
