@@ -230,6 +230,19 @@ previous teams' orgs are public, so nothing is pushed there.
 CI (`.github/workflows/test.yml`) runs `pixi run test` on Linux for every push and pull
 request, and on a Mac every night. The results are on the repo's Actions tab.
 
+### Reading a CI failure without signing in
+
+A job's log needs a GitHub sign-in. Its **annotations** don't: when the test step fails,
+`tools/ci_annotate.py` prints one annotation per failing test, with its error message.
+
+| Step | Open this (`curl -s` works too) |
+|---|---|
+| 1. Find the job | `https://api.github.com/repos/zander1976/aav/commits/<sha>/check-runs`: note the `linux` job's `id` |
+| 2. Read its failures | `https://api.github.com/repos/zander1976/aav/check-runs/<id>/annotations` |
+
+Without a sign-in GitHub allows 60 of these calls an hour, so don't poll fast. A step keeps
+at most 10 annotations: 9 failing tests, then the rest by name, or the log's last 40 lines.
+
 !!! warning "What never goes in git"
   Build output (`build/`, `install/`, `log/`, `.pixi/`, `target/`), recordings (`bags/`),
   and secrets. `.gitignore` lists them. Downloaded third-party source, such as ROS's own

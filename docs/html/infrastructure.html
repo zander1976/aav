@@ -749,6 +749,29 @@ previous teams' orgs are public, so nothing is pushed there.</p>
 </table></div>
 <p>CI (<code>.github/workflows/test.yml</code>) runs <code>pixi run test</code> on Linux for every push and pull
 request, and on a Mac every night. The results are on the repo's Actions tab.</p>
+<h3 id="reading-a-ci-failure-without-signing-in">Reading a CI failure without signing in</h3>
+<p>A job's log needs a GitHub sign-in. Its <strong>annotations</strong> don't: when the test step fails,
+<code>tools/ci_annotate.py</code> prints one annotation per failing test, with its error message.</p>
+<div class="table-wrap"><table>
+<thead>
+<tr>
+<th>Step</th>
+<th>Open this (<code>curl -s</code> works too)</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>1. Find the job</td>
+<td><code>https://api.github.com/repos/zander1976/aav/commits/&lt;sha&gt;/check-runs</code>: note the <code>linux</code> job's <code>id</code></td>
+</tr>
+<tr>
+<td>2. Read its failures</td>
+<td><code>https://api.github.com/repos/zander1976/aav/check-runs/&lt;id&gt;/annotations</code></td>
+</tr>
+</tbody>
+</table></div>
+<p>Without a sign-in GitHub allows 60 of these calls an hour, so don't poll fast. A step keeps
+at most 10 annotations: 9 failing tests, then the rest by name, or the log's last 40 lines.</p>
 <div class="admonition warning">
 <p class="admonition-title">What never goes in git</p>
 <p>Build output (<code>build/</code>, <code>install/</code>, <code>log/</code>, <code>.pixi/</code>, <code>target/</code>), recordings (<code>bags/</code>),
