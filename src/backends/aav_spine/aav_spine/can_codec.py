@@ -23,6 +23,9 @@ ESTOP_CMD_ID = 0x010
 DRIVE_CMD_ID = 0x100
 VEHICLE_FEEDBACK_ID = 0x180
 VEHICLE_STATUS_ID = 0x181
+WHEEL_SPEED_L_ID = 0x200
+WHEEL_SPEED_R_ID = 0x201
+WHEEL_SPEED_IDS = (WHEEL_SPEED_L_ID, WHEEL_SPEED_R_ID)
 
 MODE_MANUAL = 0
 MODE_RC = 1
@@ -46,6 +49,17 @@ class FrameLayout:
     name: str
     dlc: int
     signals: Dict[str, Signal]
+
+
+def _wheel_layout(name: str) -> FrameLayout:
+    """WHEEL_SPEED_L and WHEEL_SPEED_R share one layout."""
+    return FrameLayout(name, 8, {
+        'wheel_speed': Signal(0, 16, True, 0.001),    # m/s at the tyre
+        'pulse_count': Signal(16, 16),                # wraps at 65536
+        'direction_known': Signal(32, 1),             # 0 = wheel_speed is a magnitude
+        'counter': Signal(52, 4),
+        'checksum': Signal(56, 8),
+    })
 
 
 FRAMES: Dict[int, FrameLayout] = {
@@ -80,6 +94,8 @@ FRAMES: Dict[int, FrameLayout] = {
         'counter': Signal(52, 4),
         'checksum': Signal(56, 8),
     }),
+    WHEEL_SPEED_L_ID: _wheel_layout('WHEEL_SPEED_L'),
+    WHEEL_SPEED_R_ID: _wheel_layout('WHEEL_SPEED_R'),
 }
 
 

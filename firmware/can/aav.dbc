@@ -1,4 +1,4 @@
-VERSION "0.1.0"
+VERSION "0.2.0"
 
 
 NS_ :
@@ -33,7 +33,7 @@ NS_ :
 
 BS_:
 
-BU_: ORIN SPINE
+BU_: ORIN SPINE WHEEL_L WHEEL_R
 
 
 BO_ 16 ESTOP_CMD: 2 ORIN
@@ -67,15 +67,32 @@ BO_ 385 VEHICLE_STATUS: 8 SPINE
  SG_ counter : 52|4@1+ (1,0) [0|15] "" ORIN
  SG_ checksum : 56|8@1+ (1,0) [0|255] "" ORIN
 
+BO_ 512 WHEEL_SPEED_L: 8 WHEEL_L
+ SG_ wheel_speed : 0|16@1- (0.001,0) [-32.768|32.767] "m/s" ORIN,SPINE
+ SG_ pulse_count : 16|16@1+ (1,0) [0|65535] "" ORIN,SPINE
+ SG_ direction_known : 32|1@1+ (1,0) [0|1] "" ORIN,SPINE
+ SG_ counter : 52|4@1+ (1,0) [0|15] "" ORIN,SPINE
+ SG_ checksum : 56|8@1+ (1,0) [0|255] "" ORIN,SPINE
+
+BO_ 513 WHEEL_SPEED_R: 8 WHEEL_R
+ SG_ wheel_speed : 0|16@1- (0.001,0) [-32.768|32.767] "m/s" ORIN,SPINE
+ SG_ pulse_count : 16|16@1+ (1,0) [0|65535] "" ORIN,SPINE
+ SG_ direction_known : 32|1@1+ (1,0) [0|1] "" ORIN,SPINE
+ SG_ counter : 52|4@1+ (1,0) [0|15] "" ORIN,SPINE
+ SG_ checksum : 56|8@1+ (1,0) [0|255] "" ORIN,SPINE
 
 
-CM_ "AAV CAN frame map, version 0.1.0. Classic CAN at 500 kbit/s, 11-bit IDs, little-endian signals. The last byte of every frame is a CRC-8/SAE-J1850 (poly 0x1D, init 0xFF, not reflected, xorout 0xFF) over the ID low byte, the ID high byte, then the other data bytes. counter is a 4-bit rolling counter per frame ID. Reference implementations: src/backends/aav_spine/aav_spine/can_codec.py and firmware/spine/crates/spine-core/src/protocol.rs, both checked against test_vectors.json.";
+CM_ "AAV CAN frame map, version 0.2.0 (15 Oct 2026: the KEFC plan, docs/can-plan.md). Classic CAN at 500 kbit/s, 11-bit IDs, little-endian signals. The last byte of every frame is a CRC-8/SAE-J1850 (poly 0x1D, init 0xFF, not reflected, xorout 0xFF) over the ID low byte, the ID high byte, then the other data bytes. counter is a 4-bit rolling counter per frame ID. Reference implementations: src/backends/aav_spine/aav_spine/can_codec.py and firmware/spine/crates/spine-core/src/protocol.rs, both checked against test_vectors.json.";
 CM_ BU_ ORIN "The autonomy computer, running aav_spine spine_bridge through ros2_socketcan.";
-CM_ BU_ SPINE "The spine microcontroller: steering, throttle and brake drivers, wheel encoder, RC receiver and hardware e-stop input.";
+CM_ BU_ SPINE "The spine: the AAV control board already on the car (an ESP32 MicroMod), with the steering and brake drivers (two Jrk G2), the throttle DAC, the RC receiver and the hardware e-stop input. The name SPINE stays from v0.1.0, where it was a new Pico 2.";
+CM_ BU_ WHEEL_L "The left front wheel node: an ESP32-CAN-X2 (ESP32-S3) counting a Hall sensor on the brake rotor holes.";
+CM_ BU_ WHEEL_R "The right front wheel node: the same board on the right front wheel.";
 CM_ BO_ 16 "Software e-stop request, from /estop. Sent on every change and at 10 Hz.";
-CM_ BO_ 256 "Drive command, from /ego/actuator_cmd, at 50 Hz. With no valid frame for 200 ms the spine cuts throttle, brakes and holds the steering.";
+CM_ BO_ 256 "Drive command, from /ego/actuator_cmd, at 50 Hz. With no valid frame for 100 ms the spine cuts throttle, brakes and holds the steering.";
 CM_ BO_ 384 "Measured motion, at 50 Hz.";
 CM_ BO_ 385 "Spine state, at 10 Hz.";
+CM_ BO_ 512 "Left front wheel speed, at 100 Hz, from WHEEL_L.";
+CM_ BO_ 513 "Right front wheel speed, at 100 Hz, from WHEEL_R. The same layout as WHEEL_SPEED_L.";
 CM_ SG_ 16 estop_request "1 = stop now. The spine latches the stop until it receives 0 and is re-armed.";
 CM_ SG_ 256 target_speed "Signed: negative drives in reverse.";
 CM_ SG_ 256 steering_angle "Virtual front wheel angle at the middle of the axle, positive turns left (REP-103).";
@@ -87,4 +104,10 @@ CM_ SG_ 384 wheel_ticks "Cumulative encoder edges, wraps at 65536.";
 CM_ SG_ 385 throttle "Throttle output actually applied.";
 CM_ SG_ 385 brake "Brake output actually applied.";
 CM_ SG_ 385 faults "Bit field, same values as aav_interfaces/VehicleStatus FAULT_*: 1 cmd timeout, 2 bad checksum, 4 bad counter, 8 steering driver, 16 brake driver, 32 throttle DAC, 64 wheel encoder, 128 CAN bus, 256 RC signal lost, 512 overspeed.";
+CM_ SG_ 512 wheel_speed "Speed of the tyre over the ground, from the time between pulses and the wheel radius. 0 after the stale timeout with no pulse. Signed, but only when direction_known is 1.";
+CM_ SG_ 512 pulse_count "Cumulative sensor pulses, wraps at 65536. Lets the Orin check the speed, and calibrate the radius, from a bag.";
+CM_ SG_ 512 direction_known "1 = the sign of wheel_speed is measured. 0 = wheel_speed is a magnitude (one Hall sensor can't tell direction): the receiver takes the sign from the drive direction.";
+CM_ SG_ 513 wheel_speed "As WHEEL_SPEED_L.";
+CM_ SG_ 513 pulse_count "As WHEEL_SPEED_L.";
+CM_ SG_ 513 direction_known "As WHEEL_SPEED_L.";
 VAL_ 385 mode 0 "MANUAL" 1 "RC" 2 "COMPUTER" 3 "RESERVED" ;

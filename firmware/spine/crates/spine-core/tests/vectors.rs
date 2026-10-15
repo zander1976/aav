@@ -193,3 +193,75 @@ fn status_rc_estop() {
     assert_eq!(back.faults, 256);
     assert_eq!(back.counter, 4);
 }
+
+#[test]
+fn wheel_left_forward() {
+    let msg = WheelSpeed {
+        wheel: Wheel::Left,
+        wheel_speed: 2.718_f32,
+        pulse_count: 40000,
+        direction_known: false,
+        counter: 5,
+    };
+    assert_eq!(
+        msg.encode(),
+        [0x9e, 0x0a, 0x40, 0x9c, 0x00, 0x00, 0x50, 0xde]
+    );
+    let back = WheelSpeed::decode(
+        Wheel::Left,
+        &[0x9e, 0x0a, 0x40, 0x9c, 0x00, 0x00, 0x50, 0xde],
+    )
+    .unwrap();
+    assert!(close(back.wheel_speed, 2.718_f32), "wheel_speed");
+    assert_eq!(back.pulse_count, 40000);
+    assert!(!back.direction_known);
+    assert_eq!(back.counter, 5);
+}
+
+#[test]
+fn wheel_right_reverse() {
+    let msg = WheelSpeed {
+        wheel: Wheel::Right,
+        wheel_speed: -0.333_f32,
+        pulse_count: 65535,
+        direction_known: true,
+        counter: 14,
+    };
+    assert_eq!(
+        msg.encode(),
+        [0xb3, 0xfe, 0xff, 0xff, 0x01, 0x00, 0xe0, 0x0c]
+    );
+    let back = WheelSpeed::decode(
+        Wheel::Right,
+        &[0xb3, 0xfe, 0xff, 0xff, 0x01, 0x00, 0xe0, 0x0c],
+    )
+    .unwrap();
+    assert!(close(back.wheel_speed, -0.333_f32), "wheel_speed");
+    assert_eq!(back.pulse_count, 65535);
+    assert!(back.direction_known);
+    assert_eq!(back.counter, 14);
+}
+
+#[test]
+fn wheel_right_stopped() {
+    let msg = WheelSpeed {
+        wheel: Wheel::Right,
+        wheel_speed: 0.0_f32,
+        pulse_count: 0,
+        direction_known: false,
+        counter: 0,
+    };
+    assert_eq!(
+        msg.encode(),
+        [0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0xa7]
+    );
+    let back = WheelSpeed::decode(
+        Wheel::Right,
+        &[0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0xa7],
+    )
+    .unwrap();
+    assert!(close(back.wheel_speed, 0.0_f32), "wheel_speed");
+    assert_eq!(back.pulse_count, 0);
+    assert!(!back.direction_known);
+    assert_eq!(back.counter, 0);
+}

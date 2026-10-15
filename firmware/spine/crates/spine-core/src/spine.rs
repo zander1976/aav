@@ -100,7 +100,7 @@ pub struct SpineConfig {
 impl Default for SpineConfig {
     fn default() -> Self {
         SpineConfig {
-            cmd_timeout_ms: 200,
+            cmd_timeout_ms: 100,
             max_speed: 3.0,
             max_reverse_speed: 1.0,
             max_steering_angle: 0.5, // TODO: measure on the car

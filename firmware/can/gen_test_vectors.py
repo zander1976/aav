@@ -13,6 +13,7 @@ Run it after any change to aav.dbc and can_codec.py:
 import importlib.util
 import json
 from pathlib import Path
+import re
 import shutil
 import subprocess
 import sys
@@ -21,6 +22,8 @@ ROOT = Path(__file__).resolve().parents[2]
 CODEC = ROOT / 'src/backends/aav_spine/aav_spine/can_codec.py'
 JSON_OUT = ROOT / 'firmware/can/test_vectors.json'
 RUST_OUT = ROOT / 'firmware/spine/crates/spine-core/tests/vectors.rs'
+DBC = ROOT / 'firmware/can/aav.dbc'
+DBC_VERSION = re.search(r'^VERSION "([^"]+)"', DBC.read_text(), re.M).group(1)
 
 spec = importlib.util.spec_from_file_location('can_codec', CODEC)
 codec = importlib.util.module_from_spec(spec)
@@ -52,6 +55,12 @@ CASES = [
     ('status_rc_estop', codec.VEHICLE_STATUS_ID, {
         'mode': codec.MODE_RC, 'armed': 0, 'estop_active': 1,
         'throttle': 0.0, 'brake': 100.0, 'faults': 0x0100, 'counter': 4}),
+    ('wheel_left_forward', codec.WHEEL_SPEED_L_ID, {
+        'wheel_speed': 2.718, 'pulse_count': 40000, 'direction_known': 0, 'counter': 5}),
+    ('wheel_right_reverse', codec.WHEEL_SPEED_R_ID, {
+        'wheel_speed': -0.333, 'pulse_count': 65535, 'direction_known': 1, 'counter': 14}),
+    ('wheel_right_stopped', codec.WHEEL_SPEED_R_ID, {
+        'wheel_speed': 0.0, 'pulse_count': 0, 'direction_known': 0, 'counter': 0}),
 ]
 
 RUST_TYPES = {
@@ -59,9 +68,13 @@ RUST_TYPES = {
     codec.DRIVE_CMD_ID: 'DriveCmd',
     codec.VEHICLE_FEEDBACK_ID: 'VehicleFeedback',
     codec.VEHICLE_STATUS_ID: 'VehicleStatus',
+    codec.WHEEL_SPEED_L_ID: 'WheelSpeed',
+    codec.WHEEL_SPEED_R_ID: 'WheelSpeed',
 }
-BOOL_FIELDS = {'estop_request', 'armed', 'estop_active'}
-INT_FIELDS = {'counter': 'u8', 'wheel_ticks': 'u16', 'faults': 'u16'}
+# The wheel frames share a type; the wheel picks the ID, so it is a field, not a signal.
+WHEELS = {codec.WHEEL_SPEED_L_ID: 'Wheel::Left', codec.WHEEL_SPEED_R_ID: 'Wheel::Right'}
+BOOL_FIELDS = {'estop_request', 'armed', 'estop_active', 'direction_known'}
+INT_FIELDS = {'counter': 'u8', 'wheel_ticks': 'u16', 'faults': 'u16', 'pulse_count': 'u16'}
 MODES = {0: 'Mode::Manual', 1: 'Mode::Rc', 2: 'Mode::Computer'}
 
 
@@ -101,6 +114,10 @@ def main():
         ty = RUST_TYPES[can_id]
         bytes_lit = ', '.join(f'0x{b:02x}' for b in data)
         fields = ', '.join(f'{k}: {rust_value(k, values.get(k, 0))}' for k in decoded)
+        wheel = WHEELS.get(can_id)
+        if wheel:
+            fields = f'wheel: {wheel}, {fields}'
+        decode_args = f'{wheel}, ' if wheel else ''
         checks = []
         for k, v in decoded.items():
             if k in BOOL_FIELDS:
@@ -115,12 +132,12 @@ def main():
             f'fn {name}() {{',
             f'    let msg = {ty} {{ {fields} }};',
             f'    assert_eq!(msg.encode(), [{bytes_lit}]);',
-            f'    let back = {ty}::decode(&[{bytes_lit}]).unwrap();',
+            f'    let back = {ty}::decode({decode_args}&[{bytes_lit}]).unwrap();',
             *checks,
             '}',
         ]
     JSON_OUT.write_text(json.dumps({
-        'dbc_version': '0.1.0',
+        'dbc_version': DBC_VERSION,
         'generated_by': 'firmware/can/gen_test_vectors.py',
         'vectors': vectors,
     }, indent=2) + '\n')

@@ -9,6 +9,8 @@ pub const ESTOP_CMD_ID: u16 = 0x010;
 pub const DRIVE_CMD_ID: u16 = 0x100;
 pub const VEHICLE_FEEDBACK_ID: u16 = 0x180;
 pub const VEHICLE_STATUS_ID: u16 = 0x181;
+pub const WHEEL_SPEED_L_ID: u16 = 0x200;
+pub const WHEEL_SPEED_R_ID: u16 = 0x201;
 
 #[derive(Debug, Clone, Copy, PartialEq, Eq)]
 pub enum FrameError {
@@ -77,6 +79,46 @@ pub struct VehicleStatus {
     pub throttle: f32,
     pub brake: f32,
     pub faults: u16,
+    pub counter: u8,
+}
+
+/// Which front wheel a wheel node sits on. Each has its own frame ID.
+#[derive(Debug, Clone, Copy, PartialEq, Eq)]
+pub enum Wheel {
+    Left,
+    Right,
+}
+
+impl Wheel {
+    /// The ID of this wheel's WHEEL_SPEED frame.
+    pub const fn id(self) -> u16 {
+        match self {
+            Wheel::Left => WHEEL_SPEED_L_ID,
+            Wheel::Right => WHEEL_SPEED_R_ID,
+        }
+    }
+
+    /// The wheel a WHEEL_SPEED frame ID belongs to, if it is one.
+    pub const fn from_id(id: u16) -> Option<Wheel> {
+        match id {
+            WHEEL_SPEED_L_ID => Some(Wheel::Left),
+            WHEEL_SPEED_R_ID => Some(Wheel::Right),
+            _ => None,
+        }
+    }
+}
+
+/// Wheel speed (0x200 left, 0x201 right), from a wheel node at 100 Hz.
+#[derive(Debug, Clone, Copy, PartialEq)]
+pub struct WheelSpeed {
+    /// Which wheel: it picks the frame ID, so it is not in the data bytes.
+    pub wheel: Wheel,
+    /// m/s of the tyre over the ground. A magnitude unless `direction_known`.
+    pub wheel_speed: f32,
+    /// Cumulative sensor pulses; wraps at 65536.
+    pub pulse_count: u16,
+    /// True when the sign of `wheel_speed` is measured, not assumed.
+    pub direction_known: bool,
     pub counter: u8,
 }
 
@@ -273,6 +315,30 @@ impl VehicleStatus {
     }
 }
 
+impl WheelSpeed {
+    pub fn encode(&self) -> [u8; 8] {
+        let mut w = 0;
+        put(&mut w, 0, 16, raw_signed(self.wheel_speed, 1000.0, 16));
+        put(&mut w, 16, 16, self.pulse_count as u64);
+        put(&mut w, 32, 1, self.direction_known as u64);
+        put(&mut w, 52, 4, self.counter as u64);
+        finish(self.wheel.id(), w)
+    }
+
+    /// Decode the frame of `wheel`. The ID is in the checksum, so a left frame decoded
+    /// as a right one fails it.
+    pub fn decode(wheel: Wheel, data: &[u8]) -> Result<Self, FrameError> {
+        let w = check::<8>(wheel.id(), data)?;
+        Ok(WheelSpeed {
+            wheel,
+            wheel_speed: get_signed(w, 0, 16) as f32 / 1000.0,
+            pulse_count: get(w, 16, 16) as u16,
+            direction_known: get(w, 32, 1) != 0,
+            counter: get(w, 52, 4) as u8,
+        })
+    }
+}
+
 /// Frames advanced since the previous counter: 1 is normal, 0 a repeat,
 /// more than 1 means frames were lost.
 pub fn counter_step(previous: Option<u8>, current: u8) -> u8 {
@@ -335,6 +401,30 @@ mod tests {
         let back = DriveCmd::decode(&a.encode()).unwrap();
         assert_eq!(back.target_speed, 0.0);
         assert_eq!(back.steering_angle, 0.0);
+    }
+
+    #[test]
+    fn wheel_ids_round_trip() {
+        for wheel in [Wheel::Left, Wheel::Right] {
+            assert_eq!(Wheel::from_id(wheel.id()), Some(wheel));
+        }
+        assert_eq!(Wheel::from_id(DRIVE_CMD_ID), None);
+    }
+
+    #[test]
+    fn left_wheel_frame_is_not_a_right_one() {
+        let frame = WheelSpeed {
+            wheel: Wheel::Left,
+            wheel_speed: 1.0,
+            pulse_count: 7,
+            direction_known: false,
+            counter: 1,
+        }
+        .encode();
+        assert_eq!(
+            WheelSpeed::decode(Wheel::Right, &frame),
+            Err(FrameError::BadChecksum)
+        );
     }
 
     #[test]

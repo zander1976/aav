@@ -35,22 +35,22 @@ mod tests {
 
     #[test]
     fn expired_before_first_command() {
-        assert!(Watchdog::new(200).expired(0));
+        assert!(Watchdog::new(100).expired(0));
     }
 
     #[test]
     fn trips_after_timeout() {
-        let mut w = Watchdog::new(200);
+        let mut w = Watchdog::new(100);
         w.feed(1000);
-        assert!(!w.expired(1200));
-        assert!(w.expired(1201));
+        assert!(!w.expired(1100));
+        assert!(w.expired(1101));
     }
 
     #[test]
     fn survives_counter_wrap() {
-        let mut w = Watchdog::new(200);
-        w.feed(u32::MAX - 50);
-        assert!(!w.expired(100)); // 151 ms later, after the wrap
-        assert!(w.expired(200)); // 251 ms later
+        let mut w = Watchdog::new(100);
+        w.feed(u32::MAX - 20);
+        assert!(!w.expired(50)); // 71 ms later, after the wrap
+        assert!(w.expired(100)); // 121 ms later
     }
 }

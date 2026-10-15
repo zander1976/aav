@@ -1,5 +1,5 @@
 {
-  "dbc_version": "0.1.0",
+  "dbc_version": "0.2.0",
   "generated_by": "firmware/can/gen_test_vectors.py",
   "vectors": [
     {
@@ -179,6 +179,60 @@
         "counter": 4
       },
       "data_hex": "0900c8000100406e"
+    },
+    {
+      "name": "wheel_left_forward",
+      "id": 512,
+      "frame": "WHEEL_SPEED_L",
+      "values": {
+        "wheel_speed": 2.718,
+        "pulse_count": 40000,
+        "direction_known": 0,
+        "counter": 5
+      },
+      "decoded": {
+        "wheel_speed": 2.718,
+        "pulse_count": 40000,
+        "direction_known": 0,
+        "counter": 5
+      },
+      "data_hex": "9e0a409c000050de"
+    },
+    {
+      "name": "wheel_right_reverse",
+      "id": 513,
+      "frame": "WHEEL_SPEED_R",
+      "values": {
+        "wheel_speed": -0.333,
+        "pulse_count": 65535,
+        "direction_known": 1,
+        "counter": 14
+      },
+      "decoded": {
+        "wheel_speed": -0.333,
+        "pulse_count": 65535,
+        "direction_known": 1,
+        "counter": 14
+      },
+      "data_hex": "b3feffff0100e00c"
+    },
+    {
+      "name": "wheel_right_stopped",
+      "id": 513,
+      "frame": "WHEEL_SPEED_R",
+      "values": {
+        "wheel_speed": 0.0,
+        "pulse_count": 0,
+        "direction_known": 0,
+        "counter": 0
+      },
+      "decoded": {
+        "wheel_speed": 0.0,
+        "pulse_count": 0,
+        "direction_known": 0,
+        "counter": 0
+      },
+      "data_hex": "00000000000000a7"
     }
   ]
 }
