@@ -3,6 +3,8 @@
 #   Mac (Apple Silicon): every night, and on demand from the Actions tab. Mac minutes use
 #   up a private repo's free allowance much faster than Linux ones, so not on every push.
 # The Pixi version matches the one that wrote pixi.lock; raise both together.
+# A failed test step prints each failing test as an annotation (tools/ci_annotate.py):
+# GitHub's API shows those to anyone, the job's log only to people signed in.
 name: test
 
 on:
@@ -11,6 +13,11 @@ on:
   schedule:
     - cron: "0 7 * * *"   # 03:00 in Ottawa (EDT)
   workflow_dispatch:
+
+# shell: bash means bash -eo pipefail, so a failed test fails through tee too.
+defaults:
+  run:
+    shell: bash
 
 env:
   PIXI_VERSION: v0.81.0
@@ -26,13 +33,16 @@ jobs:
         run: |
           curl -fsSL https://pixi.sh/install.sh | bash
           echo "$HOME/.pixi/bin" >> "$GITHUB_PATH"
-      - uses: actions/cache@v4
+      - uses: actions/cache@v5
         with:
           path: ~/.cache/rattler/cache/pkgs
           key: pixi-pkgs-${{ runner.os }}-${{ hashFiles('pixi.lock') }}
           restore-keys: pixi-pkgs-${{ runner.os }}-
       - name: pixi run test
-        run: pixi run --locked test
+        run: pixi run --locked test 2>&1 | tee test.log
+      - name: Failures as annotations (readable without signing in)
+        if: failure()
+        run: python3 tools/ci_annotate.py test.log build
       - name: The MCP server, over stdio
         run: pixi run --locked -e mcp python3 tools/tests/mcp_smoke.py
 
@@ -46,12 +56,15 @@ jobs:
         run: |
           curl -fsSL https://pixi.sh/install.sh | bash
           echo "$HOME/.pixi/bin" >> "$GITHUB_PATH"
-      - uses: actions/cache@v4
+      - uses: actions/cache@v5
         with:
           path: ~/Library/Caches/rattler/cache/pkgs
           key: pixi-pkgs-${{ runner.os }}-${{ hashFiles('pixi.lock') }}
           restore-keys: pixi-pkgs-${{ runner.os }}-
       - name: pixi run test
-        run: pixi run --locked test
+        run: pixi run --locked test 2>&1 | tee test.log
+      - name: Failures as annotations (readable without signing in)
+        if: failure()
+        run: python3 tools/ci_annotate.py test.log build
       - name: The MCP server, over stdio
         run: pixi run --locked -e mcp python3 tools/tests/mcp_smoke.py

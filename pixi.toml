@@ -15,7 +15,7 @@ version = "0.1.0"
 [tasks]
 # One word per job. Run from the repository root: `pixi run <task>`.
 build = { cmd = "colcon build --symlink-install", description = "Compile our ROS packages" }
-test = { cmd = "tools/test.sh && tools/lint.sh && colcon test --event-handlers console_cohesion- && colcon test-result", depends-on = ["build"], description = "All tests, and the style check" }
+test = { cmd = "tools/test.sh && tools/lint.sh && colcon test --event-handlers console_cohesion- && colcon test-result --verbose", depends-on = ["build"], description = "All tests, and the style check" }
 lint = { cmd = "tools/lint.sh", description = "Check our Python against ROS's style rules" }
 turtle = { cmd = "tools/ros.sh --local ros2 launch aav_bringup turtle.launch.py", description = "turtlesim as the car (this computer only)" }
 keyboard = { cmd = "tools/ros.sh tools/keyboard.sh", description = "Drive from the keyboard (second terminal)" }

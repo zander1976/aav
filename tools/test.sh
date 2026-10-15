@@ -21,7 +21,7 @@ for pkg in src/ego/aav_ego src/backends/aav_spine src/backends/aav_legacy \
   (cd "$pkg" && python3 -m pytest -q -p no:cacheprovider)
 done
 
-echo "== tools: the MCP server's parts, and the Pico 2's UF2 converter"
+echo "== tools: the MCP server's parts, the Pico 2's UF2 converter, CI's annotations"
 python3 -m pytest -q -p no:cacheprovider tools/tests
 
 echo "== firmware/spine"
